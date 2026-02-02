@@ -1,0 +1,82 @@
+"use client";
+
+import { useState } from "react";
+
+const typeColors = {
+  Lift: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  Run: "bg-green-500/20 text-green-400 border-green-500/30",
+  Recovery: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+};
+
+const typeIcons = {
+  Lift: "🏋️",
+  Run: "🏃",
+  Recovery: "🧘",
+};
+
+export default function WorkoutCard({ workout }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-4 text-left flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">{typeIcons[workout.type]}</span>
+          <div>
+            <p className="text-sm text-zinc-500">{workout.day}</p>
+            <h3 className="font-semibold">{workout.title}</h3>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium border ${typeColors[workout.type]}`}
+          >
+            {workout.type}
+          </span>
+          <svg
+            className={`w-5 h-5 text-zinc-500 transition-transform ${expanded ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-zinc-800 p-4">
+          <table className="w-full">
+            <tbody>
+              {workout.exercises.map((exercise, index) => (
+                <tr key={index} className="border-b border-zinc-800 last:border-0">
+                  <td className="py-3 pr-4">
+                    <p className="font-medium">{exercise.name}</p>
+                    {exercise.notes && (
+                      <p className="text-sm text-zinc-500 mt-1">{exercise.notes}</p>
+                    )}
+                  </td>
+                  <td className="py-3 text-right text-zinc-400">
+                    {exercise.sets && exercise.reps && (
+                      <span>{exercise.sets} × {exercise.reps}</span>
+                    )}
+                    {exercise.duration && <span>{exercise.duration}</span>}
+                    {exercise.pace && (
+                      <span className="block text-sm text-zinc-500">{exercise.pace}</span>
+                    )}
+                    {exercise.rest && (
+                      <span className="block text-sm text-zinc-500">Rest: {exercise.rest}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
