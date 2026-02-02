@@ -6,27 +6,70 @@ import Link from "next/link";
 const questions = [
   {
     id: 1,
-    question: "What's your primary training focus right now?",
+    question: "Which best describes you right now?",
     options: [
-      "Building strength and muscle",
-      "Improving running performance",
-      "Equal focus on both",
-      "Not sure yet",
+      "🏃 Marathon runner who wants to stay strong",
+      "🏊‍♂️ Triathlete who lifts (or wants to)",
+      "🏋️ Lifter who runs (or wants to)",
+      "🔁 Hybrid athlete doing both",
+      "🤔 Not sure, but I want to train smarter",
     ],
   },
   {
     id: 2,
-    question: "How many days per week can you train?",
-    options: ["3 days", "4 days", "5 days", "6+ days"],
+    question: "What's your main goal right now?",
+    options: [
+      "Run faster without losing muscle",
+      "Build strength without hurting endurance",
+      "Balance both long-term",
+      "Prepare for an upcoming race",
+      "Train consistently without burnout",
+    ],
   },
   {
     id: 3,
-    question: "What's your biggest challenge with hybrid training?",
+    question: "How many days per week can you realistically train?",
+    options: ["3 days", "4 days", "5 days", "6+ days"],
+  },
+  {
+    id: 4,
+    question: "How would you describe your training experience?",
     options: [
-      "Feeling too tired to do both well",
-      "Not seeing progress in either",
-      "Don't know how to structure it",
-      "Worried about injury",
+      "Beginner (less than 1 year)",
+      "Intermediate (1–3 years)",
+      "Advanced (3+ years)",
+      "On and off / inconsistent",
+    ],
+  },
+  {
+    id: 5,
+    question: "What's been your biggest challenge with training?",
+    options: [
+      "Feeling slow when I lift",
+      "Feeling weak when I run more",
+      "Fatigue / overtraining",
+      "Lack of structure",
+      "Injuries or nagging pain",
+    ],
+  },
+  {
+    id: 6,
+    question: "Do you have a race coming up?",
+    options: [
+      "Yes — within 3 months",
+      "Yes — 3–6 months out",
+      "Not right now",
+      "I train without racing",
+    ],
+  },
+  {
+    id: 7,
+    question: "What would success look like in 12 weeks?",
+    options: [
+      "Faster race times",
+      "More strength while running",
+      "Better consistency",
+      "Feeling athletic year-round",
     ],
   },
 ];
@@ -92,6 +135,14 @@ export default function Quiz() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      {/* Header */}
+      {currentQuestion === 0 && (
+        <h1 className="mb-8 text-3xl font-bold sm:text-4xl">
+          Take Our Quiz to Get Your{" "}
+          <span className="text-orange-500">Custom Training Plan!</span>
+        </h1>
+      )}
+
       {/* Progress bar */}
       <div className="mb-8 w-full max-w-md">
         <div className="h-2 rounded-full bg-zinc-800">
@@ -107,9 +158,9 @@ export default function Quiz() {
         </p>
       </div>
 
-      <h1 className="max-w-xl text-2xl font-bold sm:text-3xl">
+      <h2 className="max-w-xl text-2xl font-bold sm:text-3xl">
         {question.question}
-      </h1>
+      </h2>
 
       <div className="mt-8 flex w-full max-w-md flex-col gap-3">
         {question.options.map((option, index) => (
