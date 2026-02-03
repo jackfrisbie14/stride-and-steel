@@ -100,6 +100,16 @@ export default async function Dashboard() {
           {isSubscribed && <SubscriptionButton />}
         </div>
 
+        {/* Archetype Badge - Moved to top */}
+        <div className="mb-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-6 text-center">
+          <p className="text-sm text-orange-400 mb-2">Your Training Archetype</p>
+          <p className="text-xl font-bold">The Balanced Athlete</p>
+          <p className="text-sm text-zinc-400 mt-2">
+            You thrive with equal focus on strength and endurance, building a
+            well-rounded athletic foundation.
+          </p>
+        </div>
+
         {/* Subscription Status */}
         {isSubscribed && (
           <div className="mb-8 rounded-xl border border-green-500/30 bg-green-500/10 p-4 flex items-center gap-3">
@@ -137,15 +147,6 @@ export default async function Dashboard() {
           ))}
         </div>
 
-        {/* Archetype Badge */}
-        <div className="mt-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-6 text-center">
-          <p className="text-sm text-orange-400 mb-2">Your Training Archetype</p>
-          <p className="text-xl font-bold">The Balanced Athlete</p>
-          <p className="text-sm text-zinc-400 mt-2">
-            You thrive with equal focus on strength and endurance, building a
-            well-rounded athletic foundation.
-          </p>
-        </div>
       </div>
     </main>
   );
