@@ -162,7 +162,7 @@ export default function Quiz() {
 
           <div className="mt-6 flex flex-col gap-3">
             <button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("google", { callbackUrl: "/checkout" })}
               className="flex items-center justify-center gap-3 rounded-xl border border-zinc-700 bg-zinc-800 px-6 py-3 font-medium transition-colors hover:border-orange-500 hover:bg-zinc-700"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
