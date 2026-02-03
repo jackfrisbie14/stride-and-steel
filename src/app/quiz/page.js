@@ -125,17 +125,7 @@ export default function Quiz() {
   // Show sign-up prompt after email submission
   if (isSubmitted) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center px-6 py-8 text-center">
-        <Link href="/" className="mb-8 inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
-          <Image
-            src="/logo.png"
-            alt="Stride & Steel"
-            width={150}
-            height={75}
-            className="h-12 w-auto"
-          />
-        </Link>
-
+      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
           <svg
             className="h-8 w-8 text-green-500"
@@ -212,17 +202,7 @@ export default function Quiz() {
   // Show results with email form
   if (showResult) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center px-6 py-8 text-center">
-        <Link href="/" className="mb-8 inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
-          <Image
-            src="/logo.png"
-            alt="Stride & Steel"
-            width={150}
-            height={75}
-            className="h-12 w-auto"
-          />
-        </Link>
-
+      <main className="flex min-h-screen flex-col items-center justify-center px-6 py-12 text-center">
         <div className="relative mb-6 h-48 w-48 overflow-hidden rounded-full border-4 border-orange-500">
           <Image
             src="/tripicture.jpg"
@@ -278,18 +258,7 @@ export default function Quiz() {
   const question = questions[currentQuestion];
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 py-8 text-center">
-      {/* Logo */}
-      <Link href="/" className="mb-6 inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
-        <Image
-          src="/logo.png"
-          alt="Stride & Steel"
-          width={150}
-          height={75}
-          className="h-12 w-auto"
-        />
-      </Link>
-
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
       {/* Header */}
       <h1 className="mb-8 text-3xl font-bold sm:text-4xl">
         Take Our Quiz to Get Your{" "}

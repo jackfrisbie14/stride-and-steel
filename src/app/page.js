@@ -1,26 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import HeroCarousel from "@/components/HeroCarousel";
 
 export default function Home() {
   return (
     <main className="min-h-screen">
-      {/* Header with Logo */}
-      <header className="px-6 py-4">
-        <div className="mx-auto max-w-7xl">
-          <Link href="/" className="inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
-            <Image
-              src="/logo.png"
-              alt="Stride & Steel"
-              width={180}
-              height={90}
-              className="h-14 w-auto sm:h-16"
-              priority
-            />
-          </Link>
-        </div>
-      </header>
-
       {/* Hero Section */}
       <section className="px-6 py-12 lg:py-20">
         <div className="mx-auto max-w-7xl">
