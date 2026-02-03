@@ -250,12 +250,10 @@ export default function Quiz() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
       {/* Header */}
-      {currentQuestion === 0 && (
-        <h1 className="mb-8 text-3xl font-bold sm:text-4xl">
-          Take Our Quiz to Get Your{" "}
-          <span className="text-orange-500">Custom Training Plan!</span>
-        </h1>
-      )}
+      <h1 className="mb-8 text-3xl font-bold sm:text-4xl">
+        Take Our Quiz to Get Your{" "}
+        <span className="text-orange-500">Custom Training Plan!</span>
+      </h1>
 
       {/* Progress bar */}
       <div className="mb-8 w-full max-w-md">
