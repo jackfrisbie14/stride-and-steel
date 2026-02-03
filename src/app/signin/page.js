@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function SignIn() {
+function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/checkout";
@@ -42,7 +42,7 @@ export default function SignIn() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+    <>
       <h1 className="text-3xl font-bold sm:text-4xl">
         Welcome <span className="text-orange-500">Back</span>
       </h1>
@@ -126,6 +126,16 @@ export default function SignIn() {
       <Link href="/" className="mt-10 text-sm text-zinc-500 hover:text-zinc-300">
         &larr; Back to Home
       </Link>
+    </>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <Suspense fallback={<div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-700 border-t-orange-500" />}>
+        <SignInForm />
+      </Suspense>
     </main>
   );
 }
