@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function Pricing() {
+function PricingContent() {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
@@ -118,5 +118,13 @@ export default function Pricing() {
         </Link>
       </div>
     </main>
+  );
+}
+
+export default function Pricing() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <PricingContent />
+    </Suspense>
   );
 }
