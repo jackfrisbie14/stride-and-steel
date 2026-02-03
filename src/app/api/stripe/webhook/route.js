@@ -3,20 +3,28 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request) {
-  const body = await request.text();
+  const buf = await request.arrayBuffer();
+  const body = Buffer.from(buf).toString("utf8");
   const signature = request.headers.get("stripe-signature");
+
+  if (!signature) {
+    return NextResponse.json({ error: "No signature" }, { status: 400 });
+  }
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not set");
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+  }
 
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET?.trim()
-    );
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (error) {
     console.error("Webhook signature verification failed:", error.message);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid signature", details: error.message }, { status: 400 });
   }
 
   try {
