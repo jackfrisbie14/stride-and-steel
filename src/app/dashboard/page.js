@@ -1,7 +1,7 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import WorkoutCard from "@/components/WorkoutCard";
+import DashboardWorkouts from "@/components/DashboardWorkouts";
 import { getWorkoutsArray } from "@/lib/workouts";
 import { prisma } from "@/lib/prisma";
 import SubscriptionButton from "@/components/SubscriptionButton";
@@ -140,12 +140,7 @@ export default async function Dashboard() {
         </div>
 
         {/* Workouts */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">This Week's Workouts</h3>
-          {workouts.map((workout, index) => (
-            <WorkoutCard key={index} workout={workout} locked={!isSubscribed && index > 1} />
-          ))}
-        </div>
+        <DashboardWorkouts workouts={workouts} isSubscribed={isSubscribed} />
 
       </div>
     </main>
