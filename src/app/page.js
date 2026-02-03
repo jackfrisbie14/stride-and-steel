@@ -8,13 +8,13 @@ export default function Home() {
       {/* Header with Logo */}
       <header className="px-6 py-4">
         <div className="mx-auto max-w-7xl">
-          <Link href="/">
+          <Link href="/" className="inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
             <Image
               src="/logo.png"
               alt="Stride & Steel"
               width={180}
               height={90}
-              className="h-16 w-auto sm:h-20"
+              className="h-14 w-auto sm:h-16"
               priority
             />
           </Link>

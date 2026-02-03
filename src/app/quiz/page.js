@@ -126,13 +126,13 @@ export default function Quiz() {
   if (isSubmitted) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center px-6 py-8 text-center">
-        <Link href="/" className="mb-8">
+        <Link href="/" className="mb-8 inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
           <Image
             src="/logo.png"
             alt="Stride & Steel"
             width={150}
             height={75}
-            className="h-14 w-auto"
+            className="h-12 w-auto"
           />
         </Link>
 
@@ -213,13 +213,13 @@ export default function Quiz() {
   if (showResult) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center px-6 py-8 text-center">
-        <Link href="/" className="mb-8">
+        <Link href="/" className="mb-8 inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
           <Image
             src="/logo.png"
             alt="Stride & Steel"
             width={150}
             height={75}
-            className="h-14 w-auto"
+            className="h-12 w-auto"
           />
         </Link>
 
@@ -280,13 +280,13 @@ export default function Quiz() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-8 text-center">
       {/* Logo */}
-      <Link href="/" className="mb-6">
+      <Link href="/" className="mb-6 inline-block rounded-xl bg-white p-2 shadow-lg shadow-orange-500/20 transition-transform hover:scale-105">
         <Image
           src="/logo.png"
           alt="Stride & Steel"
           width={150}
           height={75}
-          className="h-14 w-auto"
+          className="h-12 w-auto"
         />
       </Link>
 
