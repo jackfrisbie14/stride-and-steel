@@ -96,6 +96,22 @@ export async function POST(request) {
         });
         break;
       }
+
+      case "customer.subscription.created": {
+        const subscription = event.data.object;
+
+        await prisma.user.update({
+          where: { stripeCustomerId: subscription.customer },
+          data: {
+            stripeSubscriptionId: subscription.id,
+            stripePriceId: subscription.items.data[0].price.id,
+            stripeCurrentPeriodEnd: new Date(
+              subscription.current_period_end * 1000
+            ),
+          },
+        });
+        break;
+      }
     }
 
     return NextResponse.json({ received: true });
