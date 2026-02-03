@@ -4,9 +4,21 @@ import { prisma } from "@/lib/prisma";
 
 // Temporary endpoint to fix subscription sync issues
 // DELETE THIS FILE after use
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get("email");
+  const customerId = searchParams.get("customerId");
+
+  return fixSubscription(email, customerId);
+}
+
 export async function POST(request) {
+  const { email, customerId } = await request.json();
+  return fixSubscription(email, customerId);
+}
+
+async function fixSubscription(email, customerId) {
   try {
-    const { email, customerId } = await request.json();
 
     if (!email || !customerId) {
       return NextResponse.json({ error: "Missing email or customerId" }, { status: 400 });
