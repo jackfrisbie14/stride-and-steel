@@ -9,7 +9,7 @@ export default defineConfig({
       return process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL ?? "";
     },
   },
-  studio: {
+  client: {
     async url() {
       return process.env.DATABASE_URL ?? "";
     },
