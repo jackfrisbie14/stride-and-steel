@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import HeroCarousel from "@/components/HeroCarousel";
 
 export default function Home() {
   return (
@@ -35,26 +35,7 @@ export default function Home() {
             </div>
 
             {/* Hero Images */}
-            <div className="relative flex justify-center gap-4">
-              <div className="relative h-[400px] w-[200px] overflow-hidden rounded-2xl sm:h-[500px] sm:w-[240px]">
-                <Image
-                  src="/tripicture.jpg"
-                  alt="Athlete running in triathlon"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-              <div className="relative mt-12 h-[400px] w-[200px] overflow-hidden rounded-2xl sm:h-[500px] sm:w-[240px]">
-                <Image
-                  src="/tripicture2.jpg"
-                  alt="Athlete with medal after race"
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            </div>
+            <HeroCarousel />
           </div>
         </div>
       </section>
