@@ -5,15 +5,15 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function SignIn() {
+export default function SignUp() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/checkout";
-  const errorParam = searchParams.get("error");
+  const callbackUrl = searchParams.get("callbackUrl") || "/results";
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(errorParam ? "Invalid credentials" : "");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -22,20 +22,33 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const result = await signIn("credentials", {
+      // Create account
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create account");
+      }
+
+      // Sign in with credentials
+      const signInResult = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
-      if (result?.error) {
-        setError("Invalid email or password");
-        return;
+      if (signInResult?.error) {
+        throw new Error("Failed to sign in");
       }
 
       router.push(callbackUrl);
     } catch (err) {
-      setError("Something went wrong");
+      setError(err.message || "Something went wrong");
     } finally {
       setIsLoading(false);
     }
@@ -44,11 +57,11 @@ export default function SignIn() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
       <h1 className="text-3xl font-bold sm:text-4xl">
-        Welcome <span className="text-orange-500">Back</span>
+        Create Your <span className="text-orange-500">Account</span>
       </h1>
 
       <p className="mt-4 max-w-md text-zinc-400">
-        Sign in to access your personalized dashboard and training plan.
+        Sign up to discover your archetype and get your personalized training plan.
       </p>
 
       <div className="mt-10 w-full max-w-sm">
@@ -85,6 +98,13 @@ export default function SignIn() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name (optional)"
+            className="rounded-lg bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -96,8 +116,9 @@ export default function SignIn() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder="Password (min 8 characters)"
             required
+            minLength={8}
             className="rounded-lg bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
 
@@ -108,17 +129,17 @@ export default function SignIn() {
             disabled={isLoading}
             className="rounded-lg bg-orange-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
         <p className="mt-6 text-sm text-zinc-500">
-          Don't have an account?{" "}
+          Already have an account?{" "}
           <Link
-            href={`/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+            href={`/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
             className="text-orange-500 hover:underline"
           >
-            Sign up
+            Sign in
           </Link>
         </p>
       </div>
