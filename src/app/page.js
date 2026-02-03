@@ -1,32 +1,62 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
-      <section className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <h1 className="max-w-4xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-          Run Fast. Lift Strong.{" "}
-          <span className="text-orange-500">Train Without Tradeoffs.</span>
-        </h1>
+      <section className="min-h-screen px-6 py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            {/* Text Content */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
+                Run Fast. Lift Strong.{" "}
+                <span className="text-orange-500">Train Without Tradeoffs.</span>
+              </h1>
 
-        <p className="mt-6 max-w-2xl text-lg text-zinc-400 sm:text-xl">
-          A custom training system that builds speed, strength, and durability —
-          without burning you out or wrecking your lifts.
-        </p>
+              <p className="mt-6 text-lg text-zinc-400 sm:text-xl">
+                A custom training system that builds speed, strength, and durability —
+                without burning you out or wrecking your lifts.
+              </p>
 
-        <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-          <Link
-            href="/quiz"
-            className="rounded-full bg-orange-500 px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-orange-600"
-          >
-            Start the 60 Second Assessment
-          </Link>
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
+                <Link
+                  href="/quiz"
+                  className="rounded-full bg-orange-500 px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-orange-600"
+                >
+                  Start the 60 Second Assessment
+                </Link>
+              </div>
+
+              <p className="mt-6 text-sm text-zinc-500">
+                Takes 60 Seconds · No Equipment · No Commitment
+              </p>
+            </div>
+
+            {/* Hero Images */}
+            <div className="relative flex justify-center gap-4">
+              <div className="relative h-[400px] w-[200px] overflow-hidden rounded-2xl sm:h-[500px] sm:w-[240px]">
+                <Image
+                  src="/tripicture.jpg"
+                  alt="Athlete running in triathlon"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <div className="relative mt-12 h-[400px] w-[200px] overflow-hidden rounded-2xl sm:h-[500px] sm:w-[240px]">
+                <Image
+                  src="/tripicture2.jpg"
+                  alt="Athlete with medal after race"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
         </div>
-
-        <p className="mt-6 text-sm text-zinc-500">
-          Takes 60 Seconds · No Equipment · No Commitment
-        </p>
       </section>
 
       {/* Problem Section */}
