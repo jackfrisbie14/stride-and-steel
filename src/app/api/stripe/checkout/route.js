@@ -60,8 +60,8 @@ export async function POST() {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/pricing?canceled=true`,
+      success_url: `${process.env.NEXTAUTH_URL?.trim()}/dashboard?success=true`,
+      cancel_url: `${process.env.NEXTAUTH_URL?.trim()}/pricing?canceled=true`,
       metadata: {
         userId: user.id,
       },
