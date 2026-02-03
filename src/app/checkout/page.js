@@ -8,14 +8,21 @@ export default function Checkout() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [error, setError] = useState("");
+  const [checkoutInitiated, setCheckoutInitiated] = useState(false);
 
   useEffect(() => {
+    // Wait for session to load
     if (status === "loading") return;
 
-    if (!session) {
+    // If no session after loading, redirect to signin
+    if (status === "unauthenticated") {
       router.push("/signin");
       return;
     }
+
+    // Prevent double-checkout
+    if (checkoutInitiated) return;
+    setCheckoutInitiated(true);
 
     // Initiate Stripe checkout
     const initiateCheckout = async () => {
@@ -39,12 +46,13 @@ export default function Checkout() {
         // Redirect to Stripe
         window.location.href = data.url;
       } catch (err) {
+        setCheckoutInitiated(false);
         setError(err.message || "Something went wrong");
       }
     };
 
     initiateCheckout();
-  }, [session, status, router]);
+  }, [status, router, checkoutInitiated]);
 
   if (error) {
     return (
