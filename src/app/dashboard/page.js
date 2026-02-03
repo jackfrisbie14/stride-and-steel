@@ -1,7 +1,10 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import WorkoutCard from "@/components/WorkoutCard";
 import { getWorkoutsArray } from "@/lib/workouts";
+import { prisma } from "@/lib/prisma";
+import SubscriptionButton from "@/components/SubscriptionButton";
 
 export default async function Dashboard() {
   const session = await auth();
@@ -9,6 +12,14 @@ export default async function Dashboard() {
   if (!session?.user) {
     redirect("/signin");
   }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+
+  const isSubscribed =
+    user?.stripeCurrentPeriodEnd &&
+    new Date(user.stripeCurrentPeriodEnd) > new Date();
 
   const workouts = getWorkoutsArray();
 
@@ -54,15 +65,53 @@ export default async function Dashboard() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-4xl px-6 py-8">
+        {/* Subscription Banner */}
+        {!isSubscribed && (
+          <div className="mb-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold">Unlock Full Access</h2>
+                <p className="text-sm text-zinc-400">
+                  Subscribe to get personalized workouts and full features.
+                </p>
+              </div>
+              <Link
+                href="/pricing"
+                className="inline-block rounded-lg bg-orange-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-orange-600 text-center"
+              >
+                Subscribe - $49.99/mo
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold sm:text-3xl">
-            Welcome back, {session.user.name?.split(" ")[0] || "Athlete"}!
-          </h2>
-          <p className="mt-2 text-zinc-400">
-            Here's your personalized hybrid training plan for this week.
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold sm:text-3xl">
+              Welcome back, {session.user.name?.split(" ")[0] || "Athlete"}!
+            </h2>
+            <p className="mt-2 text-zinc-400">
+              {isSubscribed
+                ? "Here's your personalized hybrid training plan for this week."
+                : "Preview your training plan below."}
+            </p>
+          </div>
+          {isSubscribed && <SubscriptionButton />}
         </div>
+
+        {/* Subscription Status */}
+        {isSubscribed && (
+          <div className="mb-8 rounded-xl border border-green-500/30 bg-green-500/10 p-4 flex items-center gap-3">
+            <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-green-400">
+              Pro subscription active until{" "}
+              {new Date(user.stripeCurrentPeriodEnd).toLocaleDateString()}
+            </span>
+          </div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -84,7 +133,7 @@ export default async function Dashboard() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">This Week's Workouts</h3>
           {workouts.map((workout, index) => (
-            <WorkoutCard key={index} workout={workout} />
+            <WorkoutCard key={index} workout={workout} locked={!isSubscribed && index > 1} />
           ))}
         </div>
 
