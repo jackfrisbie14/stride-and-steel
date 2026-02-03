@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 
 const questions = [
   {
@@ -201,7 +202,16 @@ export default function Quiz() {
   // Show results with email form
   if (showResult) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <main className="flex min-h-screen flex-col items-center justify-center px-6 py-12 text-center">
+        <div className="relative mb-6 h-48 w-48 overflow-hidden rounded-full border-4 border-orange-500">
+          <Image
+            src="/tripicture.jpg"
+            alt="Hybrid Athlete"
+            fill
+            className="object-cover"
+          />
+        </div>
+
         <h1 className="text-3xl font-bold sm:text-4xl">
           Your Hybrid Archetype:{" "}
           <span className="text-orange-500">The Balanced Athlete</span>
