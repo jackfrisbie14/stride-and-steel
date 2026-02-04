@@ -79,6 +79,17 @@ const questions = [
     type: "height-weight",
     question: "What's your height and weight?",
   },
+  {
+    id: 9,
+    question: "Set your goal: Where do you want to be in 12 weeks?",
+    options: [
+      "Run a faster 5K or 10K while maintaining strength",
+      "Add 10-20 lbs to my main lifts while staying conditioned",
+      "Complete a half marathon without sacrificing muscle",
+      "Build visible muscle while improving my mile time",
+      "Feel stronger, faster, and more athletic overall",
+    ],
+  },
 ];
 
 // Info screens shown after specific questions
@@ -248,10 +259,10 @@ function HeightWeightQuestion({ onSubmit }) {
         <div className="h-2 rounded-full bg-zinc-800">
           <div
             className="h-2 rounded-full bg-orange-500 transition-all"
-            style={{ width: `${(8 / 8) * 100}%` }}
+            style={{ width: `${(8 / 9) * 100}%` }}
           />
         </div>
-        <p className="mt-2 text-sm text-zinc-500">Question 8 of 8</p>
+        <p className="mt-2 text-sm text-zinc-500">Question 8 of 9</p>
       </div>
 
       <h2 className="max-w-xl text-2xl font-bold sm:text-3xl mb-8">
