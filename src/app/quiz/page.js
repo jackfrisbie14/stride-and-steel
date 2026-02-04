@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -74,12 +74,305 @@ const questions = [
       "Feeling athletic year-round",
     ],
   },
+  {
+    id: 8,
+    type: "height-weight",
+    question: "What's your height and weight?",
+  },
 ];
+
+// Info screens shown after specific questions
+const infoScreens = {
+  1: {
+    icon: "📊",
+    title: "You're Not Alone",
+    stat: "87%",
+    description: "of athletes struggle to balance strength training with endurance work effectively.",
+    subtext: "Our program is designed specifically for this challenge.",
+  },
+  3: {
+    icon: "🔬",
+    title: "Science-Backed Training",
+    stat: "3-5 days",
+    description: "is the optimal training frequency for hybrid athletes according to recent studies.",
+    subtext: "Quality over quantity leads to better results.",
+  },
+  5: {
+    icon: "💪",
+    title: "You're Already Ahead",
+    stat: "Top 10%",
+    description: "Just by taking this quiz, you're more committed than 90% of people who want to improve.",
+    subtext: "Let's channel that motivation into results.",
+  },
+  7: {
+    icon: "🎯",
+    title: "Personalized For You",
+    stat: "12 weeks",
+    description: "is all it takes to see significant improvements with a structured hybrid program.",
+    subtext: "We'll build your custom plan based on your answers.",
+  },
+};
+
+function InfoScreen({ info, onContinue }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setVisible(true), 100);
+  }, []);
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div className={`transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+        <span className="text-6xl mb-6 block">{info.icon}</span>
+
+        <h2 className="text-xl text-zinc-400 mb-2">{info.title}</h2>
+
+        <p className="text-6xl font-bold text-orange-500 mb-4">{info.stat}</p>
+
+        <p className="text-xl max-w-md mb-2">{info.description}</p>
+
+        <p className="text-zinc-500 mb-10">{info.subtext}</p>
+
+        <button
+          onClick={onContinue}
+          className="rounded-xl bg-orange-500 px-10 py-4 font-semibold text-white transition-colors hover:bg-orange-600"
+        >
+          Continue
+        </button>
+      </div>
+    </main>
+  );
+}
+
+function AnalyzingScreen({ onComplete }) {
+  const [step, setStep] = useState(0);
+  const steps = [
+    "Analyzing your responses...",
+    "Calculating optimal training split...",
+    "Personalizing your program...",
+    "Finalizing your hybrid plan...",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((prev) => {
+        if (prev < steps.length - 1) {
+          return prev + 1;
+        } else {
+          clearInterval(interval);
+          setTimeout(onComplete, 800);
+          return prev;
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [onComplete, steps.length]);
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <div className="mb-8">
+        <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+      </div>
+
+      <h2 className="text-2xl font-bold mb-8">Building Your Plan</h2>
+
+      <div className="w-full max-w-sm space-y-3">
+        {steps.map((stepText, index) => (
+          <div
+            key={index}
+            className={`flex items-center gap-3 transition-all duration-300 ${
+              index <= step ? "opacity-100" : "opacity-30"
+            }`}
+          >
+            {index < step ? (
+              <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : index === step ? (
+              <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            ) : (
+              <div className="w-5 h-5 rounded-full border-2 border-zinc-600 flex-shrink-0" />
+            )}
+            <span className={index <= step ? "text-white" : "text-zinc-500"}>
+              {stepText}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-10 w-full max-w-sm">
+        <div className="h-2 rounded-full bg-zinc-800 overflow-hidden">
+          <div
+            className="h-full bg-orange-500 transition-all duration-1000"
+            style={{ width: `${((step + 1) / steps.length) * 100}%` }}
+          />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function HeightWeightQuestion({ onSubmit }) {
+  const [unit, setUnit] = useState("imperial");
+  const [feet, setFeet] = useState("");
+  const [inches, setInches] = useState("");
+  const [cm, setCm] = useState("");
+  const [lbs, setLbs] = useState("");
+  const [kg, setKg] = useState("");
+
+  const handleSubmit = () => {
+    let height, weight;
+    if (unit === "imperial") {
+      height = `${feet}'${inches}"`;
+      weight = `${lbs} lbs`;
+    } else {
+      height = `${cm} cm`;
+      weight = `${kg} kg`;
+    }
+    onSubmit({ height, weight, unit });
+  };
+
+  const isValid = unit === "imperial"
+    ? feet && inches && lbs
+    : cm && kg;
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <h1 className="mb-8 text-3xl font-bold sm:text-4xl">
+        Take Our Quiz to Get Your{" "}
+        <span className="text-orange-500">Custom Training Plan!</span>
+      </h1>
+
+      <div className="mb-8 w-full max-w-md">
+        <div className="h-2 rounded-full bg-zinc-800">
+          <div
+            className="h-2 rounded-full bg-orange-500 transition-all"
+            style={{ width: `${(8 / 8) * 100}%` }}
+          />
+        </div>
+        <p className="mt-2 text-sm text-zinc-500">Question 8 of 8</p>
+      </div>
+
+      <h2 className="max-w-xl text-2xl font-bold sm:text-3xl mb-8">
+        What's your height and weight?
+      </h2>
+
+      {/* Unit Toggle */}
+      <div className="flex gap-2 mb-8 p-1 bg-zinc-800 rounded-lg">
+        <button
+          onClick={() => setUnit("imperial")}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            unit === "imperial" ? "bg-orange-500 text-white" : "text-zinc-400"
+          }`}
+        >
+          Imperial (ft/lbs)
+        </button>
+        <button
+          onClick={() => setUnit("metric")}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            unit === "metric" ? "bg-orange-500 text-white" : "text-zinc-400"
+          }`}
+        >
+          Metric (cm/kg)
+        </button>
+      </div>
+
+      <div className="w-full max-w-md space-y-6">
+        {/* Height */}
+        <div>
+          <label className="block text-left text-sm text-zinc-400 mb-2">Height</label>
+          {unit === "imperial" ? (
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={feet}
+                    onChange={(e) => setFeet(e.target.value)}
+                    placeholder="5"
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">ft</span>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={inches}
+                    onChange={(e) => setInches(e.target.value)}
+                    placeholder="10"
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">in</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                type="number"
+                value={cm}
+                onChange={(e) => setCm(e.target.value)}
+                placeholder="178"
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">cm</span>
+            </div>
+          )}
+        </div>
+
+        {/* Weight */}
+        <div>
+          <label className="block text-left text-sm text-zinc-400 mb-2">Weight</label>
+          {unit === "imperial" ? (
+            <div className="relative">
+              <input
+                type="number"
+                value={lbs}
+                onChange={(e) => setLbs(e.target.value)}
+                placeholder="175"
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">lbs</span>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                type="number"
+                value={kg}
+                onChange={(e) => setKg(e.target.value)}
+                placeholder="79"
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">kg</span>
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={!isValid}
+          className="w-full rounded-xl bg-orange-500 px-6 py-4 font-semibold text-white transition-colors hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Continue
+        </button>
+      </div>
+
+      <Link href="/" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
+        ← Back to Home
+      </Link>
+    </main>
+  );
+}
 
 export default function Quiz() {
   const router = useRouter();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
+  const [showInfoScreen, setShowInfoScreen] = useState(null);
+  const [showAnalyzing, setShowAnalyzing] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [name, setName] = useState("");
@@ -130,20 +423,67 @@ export default function Quiz() {
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
 
+    const questionId = questions[currentQuestion].id;
+
+    // Check if we should show an info screen after this question
+    if (infoScreens[questionId]) {
+      setShowInfoScreen(questionId);
+    } else if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Last question - show analyzing screen
+      setShowAnalyzing(true);
+    }
+  };
+
+  const handleInfoContinue = () => {
+    setShowInfoScreen(null);
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
-      setShowSignIn(true);
+      setShowAnalyzing(true);
     }
   };
+
+  const handleHeightWeightSubmit = (data) => {
+    const newAnswers = [...answers, data];
+    setAnswers(newAnswers);
+
+    const questionId = questions[currentQuestion].id;
+    if (infoScreens[questionId]) {
+      setShowInfoScreen(questionId);
+    } else {
+      setShowAnalyzing(true);
+    }
+  };
+
+  const handleAnalyzingComplete = () => {
+    setShowAnalyzing(false);
+    setShowSignIn(true);
+  };
+
+  // Show info screen
+  if (showInfoScreen) {
+    return (
+      <InfoScreen
+        info={infoScreens[showInfoScreen]}
+        onContinue={handleInfoContinue}
+      />
+    );
+  }
+
+  // Show analyzing screen
+  if (showAnalyzing) {
+    return <AnalyzingScreen onComplete={handleAnalyzingComplete} />;
+  }
 
   // Show sign-in gate after quiz completion
   if (showSignIn) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-orange-500/20">
+        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/20">
           <svg
-            className="h-10 w-10 text-orange-500"
+            className="h-10 w-10 text-green-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -158,11 +498,11 @@ export default function Quiz() {
         </div>
 
         <h1 className="text-3xl font-bold sm:text-4xl">
-          Quiz Complete!
+          Your Plan is Ready!
         </h1>
 
         <p className="mt-4 max-w-md text-zinc-400">
-          Create an account to discover your hybrid athlete archetype and get your personalized training plan.
+          Create an account to discover your hybrid athlete archetype and access your personalized training plan.
         </p>
 
         <div className="mt-10 w-full max-w-sm">
@@ -252,7 +592,7 @@ export default function Quiz() {
                 onClick={() => setShowEmailForm(false)}
                 className="mt-4 text-sm text-zinc-500 hover:text-zinc-300"
               >
-                &larr; Back to other options
+                ← Back to other options
               </button>
             </>
           )}
@@ -266,13 +606,18 @@ export default function Quiz() {
         </div>
 
         <Link href="/" className="mt-10 text-sm text-zinc-500 hover:text-zinc-300">
-          &larr; Back to Home
+          ← Back to Home
         </Link>
       </main>
     );
   }
 
   const question = questions[currentQuestion];
+
+  // Height/Weight question
+  if (question.type === "height-weight") {
+    return <HeightWeightQuestion onSubmit={handleHeightWeightSubmit} />;
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
@@ -314,7 +659,7 @@ export default function Quiz() {
       </div>
 
       <Link href="/" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
-        &larr; Back to Home
+        ← Back to Home
       </Link>
     </main>
   );
