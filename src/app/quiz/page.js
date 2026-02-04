@@ -436,6 +436,11 @@ export default function Quiz() {
 
     const questionId = questions[currentQuestion].id;
 
+    // Store goal answer for results page
+    if (questionId === 9 && typeof window !== "undefined") {
+      localStorage.setItem("quizGoal", answer);
+    }
+
     // Check if we should show an info screen after this question
     if (infoScreens[questionId]) {
       setShowInfoScreen(questionId);
@@ -459,6 +464,11 @@ export default function Quiz() {
   const handleHeightWeightSubmit = (data) => {
     const newAnswers = [...answers, data];
     setAnswers(newAnswers);
+
+    // Store height/weight data for results page
+    if (typeof window !== "undefined") {
+      localStorage.setItem("quizHeightWeight", JSON.stringify(data));
+    }
 
     const questionId = questions[currentQuestion].id;
     if (infoScreens[questionId]) {
