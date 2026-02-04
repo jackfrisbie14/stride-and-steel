@@ -76,11 +76,23 @@ const questions = [
   },
   {
     id: 8,
+    type: "gender",
+    question: "How do you identify?",
+    options: [
+      "Man",
+      "Woman",
+      "Non-binary",
+      "Prefer to self-describe",
+      "Prefer not to say",
+    ],
+  },
+  {
+    id: 9,
     type: "height-weight",
     question: "What's your height and weight?",
   },
   {
-    id: 9,
+    id: 10,
     question: "Set your goal: Where do you want to be in 12 weeks?",
     options: [
       "Run a faster 5K or 10K while maintaining strength",
@@ -231,22 +243,57 @@ function HeightWeightQuestion({ onSubmit }) {
   const [cm, setCm] = useState("");
   const [lbs, setLbs] = useState("");
   const [kg, setKg] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Slider values (stored as numbers for sliders)
+  const [heightInches, setHeightInches] = useState(70); // 5'10" default
+  const [heightCm, setHeightCm] = useState(178);
+  const [weightLbs, setWeightLbs] = useState(175);
+  const [weightKg, setWeightKg] = useState(79);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleSubmit = () => {
     let height, weight;
     if (unit === "imperial") {
-      height = `${feet}'${inches}"`;
-      weight = `${lbs} lbs`;
+      if (isMobile) {
+        const ft = Math.floor(heightInches / 12);
+        const inch = heightInches % 12;
+        height = `${ft}'${inch}"`;
+        weight = `${weightLbs} lbs`;
+      } else {
+        height = `${feet}'${inches}"`;
+        weight = `${lbs} lbs`;
+      }
     } else {
-      height = `${cm} cm`;
-      weight = `${kg} kg`;
+      if (isMobile) {
+        height = `${heightCm} cm`;
+        weight = `${weightKg} kg`;
+      } else {
+        height = `${cm} cm`;
+        weight = `${kg} kg`;
+      }
     }
     onSubmit({ height, weight, unit });
   };
 
-  const isValid = unit === "imperial"
-    ? feet && inches && lbs
-    : cm && kg;
+  const isValid = isMobile
+    ? true // Sliders always have valid values
+    : unit === "imperial"
+      ? feet && inches && lbs
+      : cm && kg;
+
+  // Helper to display height from inches
+  const formatHeightFromInches = (totalInches) => {
+    const ft = Math.floor(totalInches / 12);
+    const inch = totalInches % 12;
+    return `${ft}'${inch}"`;
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
@@ -259,10 +306,10 @@ function HeightWeightQuestion({ onSubmit }) {
         <div className="h-2 rounded-full bg-zinc-800">
           <div
             className="h-2 rounded-full bg-orange-500 transition-all"
-            style={{ width: `${(8 / 9) * 100}%` }}
+            style={{ width: `${(9 / 10) * 100}%` }}
           />
         </div>
-        <p className="mt-2 text-sm text-zinc-500">Question 8 of 9</p>
+        <p className="mt-2 text-sm text-zinc-500">Question 9 of 10</p>
       </div>
 
       <h2 className="max-w-xl text-2xl font-bold sm:text-3xl mb-8">
@@ -293,7 +340,34 @@ function HeightWeightQuestion({ onSubmit }) {
         {/* Height */}
         <div>
           <label className="block text-left text-sm text-zinc-400 mb-2">Height</label>
-          {unit === "imperial" ? (
+          {isMobile ? (
+            // Mobile: Slider
+            <div className="space-y-3">
+              <div className="text-center text-2xl font-bold text-orange-500">
+                {unit === "imperial" ? formatHeightFromInches(heightInches) : `${heightCm} cm`}
+              </div>
+              <input
+                type="range"
+                min={unit === "imperial" ? 48 : 120}
+                max={unit === "imperial" ? 84 : 220}
+                value={unit === "imperial" ? heightInches : heightCm}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (unit === "imperial") {
+                    setHeightInches(val);
+                  } else {
+                    setHeightCm(val);
+                  }
+                }}
+                className="w-full h-3 rounded-full appearance-none cursor-pointer bg-zinc-700 accent-orange-500"
+              />
+              <div className="flex justify-between text-xs text-zinc-500">
+                <span>{unit === "imperial" ? "4'0\"" : "120 cm"}</span>
+                <span>{unit === "imperial" ? "7'0\"" : "220 cm"}</span>
+              </div>
+            </div>
+          ) : unit === "imperial" ? (
+            // Desktop Imperial: Text inputs
             <div className="flex gap-3">
               <div className="flex-1">
                 <div className="relative">
@@ -321,6 +395,7 @@ function HeightWeightQuestion({ onSubmit }) {
               </div>
             </div>
           ) : (
+            // Desktop Metric: Text input
             <div className="relative">
               <input
                 type="number"
@@ -337,7 +412,34 @@ function HeightWeightQuestion({ onSubmit }) {
         {/* Weight */}
         <div>
           <label className="block text-left text-sm text-zinc-400 mb-2">Weight</label>
-          {unit === "imperial" ? (
+          {isMobile ? (
+            // Mobile: Slider
+            <div className="space-y-3">
+              <div className="text-center text-2xl font-bold text-orange-500">
+                {unit === "imperial" ? `${weightLbs} lbs` : `${weightKg} kg`}
+              </div>
+              <input
+                type="range"
+                min={unit === "imperial" ? 80 : 35}
+                max={unit === "imperial" ? 350 : 160}
+                value={unit === "imperial" ? weightLbs : weightKg}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (unit === "imperial") {
+                    setWeightLbs(val);
+                  } else {
+                    setWeightKg(val);
+                  }
+                }}
+                className="w-full h-3 rounded-full appearance-none cursor-pointer bg-zinc-700 accent-orange-500"
+              />
+              <div className="flex justify-between text-xs text-zinc-500">
+                <span>{unit === "imperial" ? "80 lbs" : "35 kg"}</span>
+                <span>{unit === "imperial" ? "350 lbs" : "160 kg"}</span>
+              </div>
+            </div>
+          ) : unit === "imperial" ? (
+            // Desktop Imperial: Text input
             <div className="relative">
               <input
                 type="number"
@@ -349,6 +451,7 @@ function HeightWeightQuestion({ onSubmit }) {
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">lbs</span>
             </div>
           ) : (
+            // Desktop Metric: Text input
             <div className="relative">
               <input
                 type="number"
@@ -436,8 +539,13 @@ export default function Quiz() {
 
     const questionId = questions[currentQuestion].id;
 
+    // Store gender answer for results page
+    if (questionId === 8 && typeof window !== "undefined") {
+      localStorage.setItem("quizGender", answer);
+    }
+
     // Store goal answer for results page
-    if (questionId === 9 && typeof window !== "undefined") {
+    if (questionId === 10 && typeof window !== "undefined") {
       localStorage.setItem("quizGoal", answer);
     }
 
