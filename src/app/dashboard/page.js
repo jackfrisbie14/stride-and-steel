@@ -80,6 +80,7 @@ export default async function Dashboard() {
         currentWeek: activePlan.currentWeek,
         totalWeeks: activePlan.totalWeeks,
         currentPhase,
+        phases: Array.isArray(phases) ? phases : [],
       };
     }
   }
@@ -245,12 +246,60 @@ export default async function Dashboard() {
                 {racePlanInfo.currentPhase} Phase
               </span>
             </div>
-            <div className="mt-3 h-2 bg-zinc-800 rounded-full overflow-hidden">
+
+            {/* Overall progress */}
+            <div className="mt-4 h-2 bg-zinc-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-orange-500 to-green-500 transition-all duration-500"
                 style={{ width: `${(racePlanInfo.currentWeek / racePlanInfo.totalWeeks) * 100}%` }}
               />
             </div>
+            <p className="text-xs text-zinc-500 mt-1 text-right">
+              {Math.round((racePlanInfo.currentWeek / racePlanInfo.totalWeeks) * 100)}% to race day
+            </p>
+
+            {/* Phase breakdown */}
+            {racePlanInfo.phases.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {racePlanInfo.phases.map((phase) => {
+                  const isCurrent = racePlanInfo.currentPhase === phase.name;
+                  const isCompleted = racePlanInfo.currentWeek > phase.endWeek;
+                  const weeksIntoPhase = Math.max(0, Math.min(phase.weeks, racePlanInfo.currentWeek - phase.startWeek + 1));
+                  const phaseProgress = isCompleted ? 100 : isCurrent ? Math.round((weeksIntoPhase / phase.weeks) * 100) : 0;
+
+                  const phaseColors = {
+                    base: { bar: "bg-blue-500", text: "text-blue-400", border: "border-blue-500/30", bg: "bg-blue-500/10" },
+                    build: { bar: "bg-orange-500", text: "text-orange-400", border: "border-orange-500/30", bg: "bg-orange-500/10" },
+                    peak: { bar: "bg-red-500", text: "text-red-400", border: "border-red-500/30", bg: "bg-red-500/10" },
+                    taper: { bar: "bg-green-500", text: "text-green-400", border: "border-green-500/30", bg: "bg-green-500/10" },
+                  };
+                  const colors = phaseColors[phase.name] || phaseColors.base;
+
+                  return (
+                    <div
+                      key={phase.name}
+                      className={`rounded-lg border p-3 ${isCurrent ? `${colors.border} ${colors.bg}` : "border-zinc-800 bg-zinc-900"} ${isCompleted ? "opacity-60" : ""}`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <p className={`text-xs font-semibold capitalize ${isCurrent ? colors.text : "text-zinc-400"}`}>
+                          {phase.name}
+                        </p>
+                        <p className="text-xs text-zinc-500">{phase.weeks}w</p>
+                      </div>
+                      <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${colors.bar} transition-all duration-500 rounded-full`}
+                          style={{ width: `${phaseProgress}%` }}
+                        />
+                      </div>
+                      <p className={`text-xs mt-1 ${isCurrent ? colors.text : "text-zinc-600"}`}>
+                        {isCompleted ? "Complete" : isCurrent ? `${phaseProgress}%` : `Wk ${phase.startWeek}-${phase.endWeek}`}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
