@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export default function ExerciseModal({ exercise, exerciseName, onClose }) {
+  const [gifData, setGifData] = useState(null);
+  const [gifLoading, setGifLoading] = useState(true);
+
   // Close on escape key
   useEffect(() => {
     const handleEscape = (e) => {
@@ -20,6 +22,28 @@ export default function ExerciseModal({ exercise, exerciseName, onClose }) {
       document.body.style.overflow = "unset";
     };
   }, []);
+
+  // Fetch GIF from ExerciseDB
+  useEffect(() => {
+    const fetchGif = async () => {
+      setGifLoading(true);
+      try {
+        const res = await fetch(`/api/exercises/search?q=${encodeURIComponent(exerciseName)}`);
+        const data = await res.json();
+        if (data.exercises?.length > 0) {
+          setGifData(data.exercises[0]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch exercise GIF:", err);
+      } finally {
+        setGifLoading(false);
+      }
+    };
+
+    if (exerciseName) {
+      fetchGif();
+    }
+  }, [exerciseName]);
 
   if (!exercise) {
     return (
@@ -42,7 +66,68 @@ export default function ExerciseModal({ exercise, exerciseName, onClose }) {
               </svg>
             </button>
           </div>
-          <p className="text-zinc-400">Tutorial coming soon for this exercise.</p>
+
+          {/* GIF for exercises without tutorial data */}
+          {gifLoading ? (
+            <div className="w-full h-48 bg-zinc-800 rounded-xl flex items-center justify-center">
+              <div className="flex items-center gap-2 text-zinc-500">
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Loading demo...
+              </div>
+            </div>
+          ) : gifData?.gifUrl ? (
+            <div className="w-full rounded-xl overflow-hidden bg-zinc-800">
+              <img
+                src={gifData.gifUrl}
+                alt={gifData.name}
+                className="w-full h-auto"
+              />
+              <div className="p-3 space-y-2">
+                {gifData.targetMuscles?.length > 0 && (
+                  <p className="text-xs text-zinc-500">
+                    Target: <span className="text-zinc-400">{gifData.targetMuscles.join(", ")}</span>
+                  </p>
+                )}
+                {gifData.equipments?.length > 0 && (
+                  <p className="text-xs text-zinc-500">
+                    Equipment: <span className="text-zinc-400">{gifData.equipments.join(", ")}</span>
+                  </p>
+                )}
+                {gifData.instructions?.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-zinc-700">
+                    <p className="text-xs font-semibold text-zinc-400 mb-2">Instructions</p>
+                    <ol className="space-y-1">
+                      {gifData.instructions.map((step, i) => (
+                        <li key={i} className="text-xs text-zinc-400 flex gap-2">
+                          <span className="text-zinc-600 flex-shrink-0">{i + 1}.</span>
+                          {step}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-zinc-400">Tutorial coming soon for this exercise.</p>
+              <a
+                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + " exercise tutorial")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z" />
+                  <path fill="#000" d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+                Search on YouTube
+              </a>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -74,14 +159,41 @@ export default function ExerciseModal({ exercise, exerciseName, onClose }) {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Exercise Image Placeholder */}
-          <div className="relative w-full h-48 bg-zinc-800 rounded-xl flex items-center justify-center overflow-hidden">
-            <div className="text-center">
-              <svg className="w-16 h-16 mx-auto text-zinc-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <p className="text-sm text-zinc-500">Exercise demonstration</p>
-            </div>
+          {/* Exercise GIF or Placeholder */}
+          <div className="relative w-full bg-zinc-800 rounded-xl overflow-hidden">
+            {gifLoading ? (
+              <div className="h-48 flex items-center justify-center">
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Loading demo...
+                </div>
+              </div>
+            ) : gifData?.gifUrl ? (
+              <img
+                src={gifData.gifUrl}
+                alt={exerciseName}
+                className="w-full h-auto"
+              />
+            ) : (
+              <div className="h-48 flex items-center justify-center">
+                <div className="text-center">
+                  <svg className="w-16 h-16 mx-auto text-zinc-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + " exercise tutorial")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    Search on YouTube
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Info */}
