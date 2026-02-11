@@ -382,6 +382,17 @@ export default async function Dashboard() {
           </div>
         )}
 
+        {/* Disclaimer */}
+        <div className="mt-16 pt-6 border-t border-zinc-800/50 text-xs text-zinc-600 max-w-2xl mx-auto leading-relaxed text-center">
+          <p className="font-semibold text-zinc-500 mb-2">Disclaimer</p>
+          <p>
+            Stride & Steel provides general fitness information and AI-generated training plans for educational purposes only. This content is not medical advice and is not intended to diagnose, treat, cure, or prevent any condition or disease. Always consult a qualified healthcare provider or certified fitness professional before beginning any exercise program, especially if you have pre-existing health conditions, injuries, or concerns.
+          </p>
+          <p className="mt-2">
+            By using this service, you acknowledge that all physical activity carries inherent risks of injury. Stride & Steel, its owners, employees, and affiliates assume no liability for any injuries, damages, or losses resulting from the use of information or training plans provided through this platform. You participate in any suggested workouts entirely at your own risk.
+          </p>
+        </div>
+
       </div>
 
       {/* Onboarding Tutorial for new subscribers */}
