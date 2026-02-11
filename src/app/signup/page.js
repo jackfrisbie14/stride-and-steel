@@ -140,7 +140,7 @@ function SignUpForm() {
         <p className="mt-6 text-sm text-zinc-500">
           Already have an account?{" "}
           <Link
-            href={`/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+            href={`/?callbackUrl=${encodeURIComponent(callbackUrl)}`}
             className="text-orange-500 hover:underline"
           >
             Sign in
@@ -148,7 +148,7 @@ function SignUpForm() {
         </p>
       </div>
 
-      <Link href="/" className="mt-10 text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/welcome" className="mt-10 text-sm text-zinc-500 hover:text-zinc-300">
         &larr; Back to Home
       </Link>
     </>

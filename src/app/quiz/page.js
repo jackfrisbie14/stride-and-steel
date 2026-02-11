@@ -480,7 +480,7 @@ function HeightWeightQuestion({ onSubmit }) {
         </button>
       </div>
 
-      <Link href="/" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/welcome" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
         ← Back to Home
       </Link>
     </main>
@@ -757,13 +757,13 @@ export default function Quiz() {
 
           <p className="mt-6 text-sm text-zinc-500">
             Already have an account?{" "}
-            <Link href="/signin?callbackUrl=/results" className="text-orange-500 hover:underline">
+            <Link href="/?callbackUrl=/results" className="text-orange-500 hover:underline">
               Sign in
             </Link>
           </p>
         </div>
 
-        <Link href="/" className="mt-10 text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href="/welcome" className="mt-10 text-sm text-zinc-500 hover:text-zinc-300">
           ← Back to Home
         </Link>
       </main>
@@ -816,7 +816,7 @@ export default function Quiz() {
         ))}
       </div>
 
-      <Link href="/" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/welcome" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
         ← Back to Home
       </Link>
     </main>

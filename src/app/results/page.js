@@ -387,7 +387,7 @@ export default function Results() {
       {/* Pricing Section */}
       <PricingSection discount={discount} />
 
-      <Link href="/" className="mt-12 mb-8 text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/welcome" className="mt-12 mb-8 text-sm text-zinc-500 hover:text-zinc-300">
         ← Back to Home
       </Link>
     </main>

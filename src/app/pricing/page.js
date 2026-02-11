@@ -113,7 +113,7 @@ function PricingContent() {
           </div>
         </div>
 
-        <Link href="/" className="mt-8 inline-block text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href="/welcome" className="mt-8 inline-block text-sm text-zinc-500 hover:text-zinc-300">
           &larr; Back to Home
         </Link>
       </div>
