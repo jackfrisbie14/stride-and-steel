@@ -52,7 +52,8 @@ export default function WorkoutFeedbackModal({
   onClose,
   onSubmit,
 }) {
-  const [step, setStep] = useState(existingLog?.completed ? "post" : "pre");
+  // If pre-workout ratings exist, show post-workout step (user already did pre-workout)
+  const [step, setStep] = useState(existingLog?.preEnergyLevel ? "post" : "pre");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Pre-workout ratings
@@ -94,7 +95,8 @@ export default function WorkoutFeedbackModal({
         preSoreness,
         preMotivation,
       });
-      setStep("post");
+      // Close modal after pre-workout - user will do workout and come back for post-workout
+      onClose();
     } finally {
       setIsSubmitting(false);
     }

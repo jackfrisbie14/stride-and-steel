@@ -13,6 +13,7 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      select: { id: true, trainingDays: true },
     });
 
     if (!user) {
@@ -50,6 +51,7 @@ export async function GET() {
     return NextResponse.json({
       trainingWeek: currentWeek,
       workoutLogs: currentWeek.workoutLogs,
+      trainingDays: user.trainingDays || 7,
     });
   } catch (error) {
     console.error("Get workouts error:", error);
@@ -71,6 +73,7 @@ export async function POST(request) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
+      select: { id: true, trainingDays: true, racePlanActive: true },
     });
 
     if (!user) {
@@ -91,6 +94,7 @@ export async function POST(request) {
       completed,
       skipped,
       notes,
+      exerciseLogs,
     } = body;
 
     // Get or create current training week
@@ -137,6 +141,7 @@ export async function POST(request) {
           skipped: skipped ?? workoutLog.skipped,
           completedAt: completed ? new Date() : workoutLog.completedAt,
           notes: notes ?? workoutLog.notes,
+          exerciseLogs: exerciseLogs ?? workoutLog.exerciseLogs,
         },
       });
     } else {
@@ -157,18 +162,20 @@ export async function POST(request) {
           skipped: skipped || false,
           completedAt: completed ? new Date() : null,
           notes,
+          exerciseLogs,
         },
       });
     }
 
-    // Check if week is complete (all 7 days logged)
+    // Check if week is complete (all training days logged)
     const allLogs = await prisma.workoutLog.findMany({
       where: { trainingWeekId: currentWeek.id },
     });
 
     const completedOrSkipped = allLogs.filter((log) => log.completed || log.skipped);
+    const requiredDays = user.trainingDays || 7;
 
-    if (completedOrSkipped.length >= 7) {
+    if (completedOrSkipped.length >= requiredDays) {
       // Calculate averages and complete the week
       const completedLogs = allLogs.filter((log) => log.completed);
 
@@ -209,6 +216,19 @@ export async function POST(request) {
           startDate: new Date(),
         },
       });
+
+      // Advance RacePlan.currentWeek if in race mode
+      if (user.racePlanActive) {
+        const activePlan = await prisma.racePlan.findFirst({
+          where: { userId: user.id, isActive: true },
+        });
+        if (activePlan && activePlan.currentWeek < activePlan.totalWeeks) {
+          await prisma.racePlan.update({
+            where: { id: activePlan.id },
+            data: { currentWeek: activePlan.currentWeek + 1 },
+          });
+        }
+      }
     }
 
     return NextResponse.json({ workoutLog });

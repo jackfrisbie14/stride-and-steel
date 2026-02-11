@@ -60,12 +60,12 @@ export default function DashboardWorkouts({ workouts, isSubscribed }) {
   ).length;
 
   return (
-    <div className="space-y-4">
+    <div data-tour="workouts" className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">This Week's Workouts</h3>
         {isSubscribed && !loading && (
           <span className="text-sm text-zinc-400">
-            {completedCount}/7 completed
+            {completedCount}/{workouts.length} completed
           </span>
         )}
       </div>
@@ -85,13 +85,14 @@ export default function DashboardWorkouts({ workouts, isSubscribed }) {
       ) : (
         <div className="space-y-4">
           {workouts.map((workout, index) => (
-            <WorkoutCard
-              key={index}
-              workout={workout}
-              locked={!isSubscribed && index > 1}
-              workoutLog={isSubscribed ? getWorkoutLog(workout.day) : null}
-              onLogWorkout={isSubscribed ? handleLogWorkout : null}
-            />
+            <div key={index} data-tour={index === 0 ? "workout-card" : undefined}>
+              <WorkoutCard
+                workout={workout}
+                locked={!isSubscribed && index > 1}
+                workoutLog={isSubscribed ? getWorkoutLog(workout.day) : null}
+                onLogWorkout={isSubscribed ? handleLogWorkout : null}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -102,13 +103,13 @@ export default function DashboardWorkouts({ workouts, isSubscribed }) {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Week Progress</span>
             <span className="text-sm text-zinc-400">
-              {Math.round((completedCount / 7) * 100)}%
+              {Math.round((completedCount / workouts.length) * 100)}%
             </span>
           </div>
           <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-orange-500 to-green-500 transition-all duration-500"
-              style={{ width: `${(completedCount / 7) * 100}%` }}
+              style={{ width: `${(completedCount / workouts.length) * 100}%` }}
             />
           </div>
         </div>

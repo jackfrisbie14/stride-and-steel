@@ -4,18 +4,23 @@ import { useState } from "react";
 import Link from "next/link";
 import ExerciseModal from "./ExerciseModal";
 import WorkoutFeedbackModal from "./WorkoutFeedbackModal";
+import ExerciseTracker from "./ExerciseTracker";
 import { getExercise } from "@/lib/exercises";
 
 const typeColors = {
   Lift: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   Run: "bg-green-500/20 text-green-400 border-green-500/30",
   Recovery: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  Swim: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+  Bike: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
 };
 
 const typeIcons = {
   Lift: "🏋️",
   Run: "🏃",
   Recovery: "🧘",
+  Swim: "🏊",
+  Bike: "🚴",
 };
 
 export default function WorkoutCard({
@@ -43,6 +48,17 @@ export default function WorkoutCard({
   const handleLogWorkout = async (data) => {
     if (onLogWorkout) {
       await onLogWorkout(data);
+    }
+  };
+
+  const handleSaveExerciseLogs = async (exerciseLogs) => {
+    if (onLogWorkout) {
+      await onLogWorkout({
+        dayOfWeek: workout.day,
+        workoutType: workout.type,
+        workoutTitle: workout.title,
+        exerciseLogs,
+      });
     }
   };
 
@@ -198,6 +214,17 @@ export default function WorkoutCard({
               </table>
             </div>
 
+            {/* Exercise Tracker for Lift workouts in progress */}
+            {isInProgress && workout.type === "Lift" && (
+              <div className="border-t border-zinc-800 p-4">
+                <ExerciseTracker
+                  exercises={workout.exercises}
+                  exerciseLogs={workoutLog?.exerciseLogs}
+                  onSave={handleSaveExerciseLogs}
+                />
+              </div>
+            )}
+
             {/* Log Workout Button */}
             {onLogWorkout && !isCompleted && !isSkipped && (
               <div className="border-t border-zinc-800 p-4">
@@ -237,6 +264,32 @@ export default function WorkoutCard({
                 </div>
                 {workoutLog.notes && (
                   <p className="mt-2 text-sm text-zinc-400 italic">"{workoutLog.notes}"</p>
+                )}
+
+                {/* Show logged weights for lift workouts */}
+                {workout.type === "Lift" && workoutLog.exerciseLogs && workoutLog.exerciseLogs.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-zinc-700">
+                    <p className="text-sm text-zinc-500 mb-3">Weights logged:</p>
+                    <div className="space-y-2">
+                      {workoutLog.exerciseLogs.map((log, i) => {
+                        const completedSets = log.sets?.filter(s => s.completed && s.weight) || [];
+                        if (completedSets.length === 0) return null;
+                        return (
+                          <div key={i} className="flex items-center justify-between text-sm">
+                            <span className="text-zinc-300">{log.exerciseName}</span>
+                            <span className="text-zinc-500">
+                              {completedSets.map((s, j) => (
+                                <span key={j}>
+                                  {j > 0 && ", "}
+                                  {s.weight}×{s.reps}
+                                </span>
+                              ))}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
             )}

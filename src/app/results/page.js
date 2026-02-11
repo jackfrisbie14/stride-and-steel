@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import DiscountWheel from "@/components/DiscountWheel";
+import PricingSection from "@/components/PricingSection";
 
 // Calculate BMI
 function calculateBMI(heightData, weightData, unit) {
@@ -143,18 +145,45 @@ export default function Results() {
   const [commitment, setCommitment] = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [goal, setGoal] = useState(null);
+  const [discount, setDiscount] = useState(null);
+  const [archetypeLabel, setArchetypeLabel] = useState(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/quiz");
     }
-  }, [status, router]);
+    // For Google OAuth users: submit stored quiz answers after redirect
+    if (status === "authenticated" && session?.user?.email && typeof window !== "undefined") {
+      const storedAnswers = localStorage.getItem("quizAnswers");
+      if (storedAnswers) {
+        const answers = JSON.parse(storedAnswers);
+        fetch("/api/quiz/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: session.user.email, answers }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.archetype) {
+              localStorage.setItem("quizArchetype", data.archetype);
+              setArchetypeLabel(data.archetype);
+            }
+            localStorage.removeItem("quizAnswers");
+          })
+          .catch((err) => console.error("Quiz submit error:", err));
+      }
+    }
+  }, [status, router, session]);
 
   // Load quiz data from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const heightWeightData = localStorage.getItem("quizHeightWeight");
       const goalData = localStorage.getItem("quizGoal");
+      const savedArchetype = localStorage.getItem("quizArchetype");
+      if (savedArchetype) {
+        setArchetypeLabel(savedArchetype);
+      }
 
       if (heightWeightData) {
         try {
@@ -176,6 +205,12 @@ export default function Results() {
 
       if (goalData) {
         setGoal(goalData);
+      }
+
+      // Check for existing discount
+      const savedDiscount = localStorage.getItem("ss_wheel_discount");
+      if (savedDiscount) {
+        setDiscount(JSON.parse(savedDiscount));
       }
     }
   }, []);
@@ -230,7 +265,7 @@ export default function Results() {
 
       <h1 className="text-2xl font-bold sm:text-3xl">
         Your Hybrid Archetype:{" "}
-        <span className="text-orange-500">The Balanced Athlete</span>
+        <span className="text-orange-500">{archetypeLabel || "The Balanced Athlete"}</span>
       </h1>
 
       {/* Goal Display */}
@@ -344,18 +379,15 @@ export default function Results() {
         </div>
       </div>
 
-      <Link
-        href="/checkout"
-        className="mt-8 inline-block rounded-xl bg-orange-500 px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-orange-600"
-      >
-        Get Your Training Plan
-      </Link>
+      {/* Discount Wheel */}
+      <div className="mt-12 w-full">
+        <DiscountWheel onComplete={(result) => setDiscount(result)} />
+      </div>
 
-      <p className="mt-4 text-sm text-zinc-500">
-        Start building speed and strength today
-      </p>
+      {/* Pricing Section */}
+      <PricingSection discount={discount} />
 
-      <Link href="/" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/" className="mt-12 mb-8 text-sm text-zinc-500 hover:text-zinc-300">
         ← Back to Home
       </Link>
     </main>

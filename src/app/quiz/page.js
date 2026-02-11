@@ -366,46 +366,49 @@ function HeightWeightQuestion({ onSubmit }) {
                 <span>{unit === "imperial" ? "7'0\"" : "220 cm"}</span>
               </div>
             </div>
-          ) : unit === "imperial" ? (
-            // Desktop Imperial: Text inputs
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={feet}
-                    onChange={(e) => setFeet(e.target.value)}
-                    placeholder="5"
-                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">ft</span>
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={inches}
-                    onChange={(e) => setInches(e.target.value)}
-                    placeholder="10"
-                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">in</span>
-                </div>
-              </div>
-            </div>
           ) : (
-            // Desktop Metric: Text input
-            <div className="relative">
-              <input
-                type="number"
-                value={cm}
-                onChange={(e) => setCm(e.target.value)}
-                placeholder="178"
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">cm</span>
-            </div>
+            // Desktop: Text inputs
+            <>
+              {unit === "imperial" ? (
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={feet}
+                        onChange={(e) => setFeet(e.target.value)}
+                        placeholder="5"
+                        className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">ft</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={inches}
+                        onChange={(e) => setInches(e.target.value)}
+                        placeholder="10"
+                        className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">in</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={cm}
+                    onChange={(e) => setCm(e.target.value)}
+                    placeholder="178"
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">cm</span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -438,30 +441,33 @@ function HeightWeightQuestion({ onSubmit }) {
                 <span>{unit === "imperial" ? "350 lbs" : "160 kg"}</span>
               </div>
             </div>
-          ) : unit === "imperial" ? (
-            // Desktop Imperial: Text input
-            <div className="relative">
-              <input
-                type="number"
-                value={lbs}
-                onChange={(e) => setLbs(e.target.value)}
-                placeholder="175"
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">lbs</span>
-            </div>
           ) : (
-            // Desktop Metric: Text input
-            <div className="relative">
-              <input
-                type="number"
-                value={kg}
-                onChange={(e) => setKg(e.target.value)}
-                placeholder="79"
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">kg</span>
-            </div>
+            // Desktop: Text input
+            <>
+              {unit === "imperial" ? (
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={lbs}
+                    onChange={(e) => setLbs(e.target.value)}
+                    placeholder="175"
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">lbs</span>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={kg}
+                    onChange={(e) => setKg(e.target.value)}
+                    placeholder="79"
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">kg</span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -523,6 +529,23 @@ export default function Quiz() {
 
       if (signInResult?.error) {
         throw new Error("Failed to sign in");
+      }
+
+      // Submit quiz answers to generate personalized workouts
+      try {
+        const quizRes = await fetch("/api/quiz/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, answers }),
+        });
+        if (quizRes.ok) {
+          const quizData = await quizRes.json();
+          if (quizData.archetype) {
+            localStorage.setItem("quizArchetype", quizData.archetype);
+          }
+        }
+      } catch (quizErr) {
+        console.error("Quiz submit error:", quizErr);
       }
 
       router.push("/results");
@@ -638,7 +661,13 @@ export default function Quiz() {
           {!showEmailForm ? (
             <>
               <button
-                onClick={() => signIn("google", { callbackUrl: "/results" })}
+                onClick={() => {
+                  // Store quiz answers in localStorage before OAuth redirect
+                  if (typeof window !== "undefined") {
+                    localStorage.setItem("quizAnswers", JSON.stringify(answers));
+                  }
+                  signIn("google", { callbackUrl: "/results" });
+                }}
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 font-semibold text-zinc-900 transition-colors hover:bg-zinc-100"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">

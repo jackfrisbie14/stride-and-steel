@@ -96,6 +96,21 @@ export async function POST(request) {
             stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
           },
         });
+
+        // Track subscription in funnel (use visitorId from metadata if available)
+        try {
+          await prisma.funnelEvent.create({
+            data: {
+              step: "subscribed",
+              visitorId: session.metadata?.visitorId || `user_${user.id}`,
+              userId: user.id,
+              metadata: { priceId: subscription.items.data[0].price.id },
+            },
+          });
+        } catch (e) {
+          // Don't fail webhook for analytics
+          console.error("Failed to track subscription funnel:", e);
+        }
         break;
       }
 

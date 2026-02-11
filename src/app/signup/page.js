@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { trackFunnelEvent } from "@/components/Analytics";
 
 function SignUpForm() {
   const router = useRouter();
@@ -45,6 +46,9 @@ function SignUpForm() {
       if (signInResult?.error) {
         throw new Error("Failed to sign in");
       }
+
+      // Track successful signup
+      trackFunnelEvent("signup_complete");
 
       router.push(callbackUrl);
     } catch (err) {

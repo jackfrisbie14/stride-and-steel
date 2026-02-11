@@ -4,7 +4,24 @@ import Link from "next/link";
 import DashboardWorkouts from "@/components/DashboardWorkouts";
 import { getWorkoutsArray } from "@/lib/workouts";
 import { prisma } from "@/lib/prisma";
-import SubscriptionButton from "@/components/SubscriptionButton";
+import AdminPanel from "@/components/AdminPanel";
+import RaceGoal from "@/components/RaceGoal";
+import RefundRequest from "@/components/RefundRequest";
+import CancelMembership from "@/components/CancelMembership";
+import OnboardingTutorial from "@/components/OnboardingTutorial";
+import TrainingDaySelector from "@/components/TrainingDaySelector";
+import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/archetypes";
+import { generateQuizWorkouts } from "@/lib/workout-generator";
+
+const ADMIN_EMAIL = "jackfrisbie14@gmail.com";
+
+// Archetype descriptions keyed by label
+const archetypeDescriptions = {
+  "The Iron Runner": "You prioritize running and use lifting to get faster. Speed and endurance are your foundation.",
+  "The Steel Strider": "You prioritize strength and use running for conditioning. The gym is your home turf.",
+  "The Balanced Athlete": "You thrive with equal focus on strength and endurance, building a well-rounded athletic foundation.",
+  "The Endurance Machine": "You're built for volume and distance. Long runs and high-rep training fuel your engine.",
+};
 
 export default async function Dashboard() {
   const session = await auth();
@@ -15,13 +32,122 @@ export default async function Dashboard() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
+    select: {
+      id: true,
+      stripeCurrentPeriodEnd: true,
+      raceName: true,
+      raceDate: true,
+      raceDistance: true,
+      archetype: true,
+      trainingDays: true,
+      racePlanActive: true,
+      quizAnswers: true,
+    },
   });
+
+  const isAdmin = session.user.email === ADMIN_EMAIL;
+
+  const raceGoal = user?.raceName ? {
+    raceName: user.raceName,
+    raceDate: user.raceDate,
+    raceDistance: user.raceDistance,
+  } : null;
 
   const isSubscribed =
     user?.stripeCurrentPeriodEnd &&
     new Date(user.stripeCurrentPeriodEnd) > new Date();
 
-  const workouts = getWorkoutsArray();
+  // Get race plan info if active
+  let racePlanInfo = null;
+  if (user?.racePlanActive) {
+    const activePlan = await prisma.racePlan.findFirst({
+      where: { userId: user.id, isActive: true },
+      select: { currentWeek: true, totalWeeks: true, phases: true },
+    });
+    if (activePlan) {
+      // Determine current phase
+      const phases = activePlan.phases;
+      let currentPhase = "base";
+      if (Array.isArray(phases)) {
+        for (const p of phases) {
+          if (activePlan.currentWeek >= p.startWeek && activePlan.currentWeek <= p.endWeek) {
+            currentPhase = p.name;
+            break;
+          }
+        }
+      }
+      racePlanInfo = {
+        currentWeek: activePlan.currentWeek,
+        totalWeeks: activePlan.totalWeeks,
+        currentPhase,
+      };
+    }
+  }
+
+  // Determine which week to show
+  const currentWeekNum = racePlanInfo?.currentWeek || 1;
+
+  // Query stored workouts from DB
+  let workouts = await prisma.workout.findMany({
+    where: {
+      userId: user.id,
+      source: user.racePlanActive ? "race" : "quiz",
+      weekNumber: currentWeekNum,
+    },
+    orderBy: { dayNumber: "asc" },
+  });
+
+  // Migration safety: if no stored workouts exist but user has quiz answers, generate on the fly
+  if (workouts.length === 0 && user?.quizAnswers) {
+    const answersArray = Array.isArray(user.quizAnswers) ? user.quizAnswers : Object.values(user.quizAnswers || {});
+    const archetype = determineArchetype(answersArray);
+    const trainingDays = user.trainingDays || parseTrainingDays(answersArray[2]);
+    const experience = parseExperience(answersArray[3]);
+
+    const generated = generateQuizWorkouts({ archetype, trainingDays, experience });
+
+    // Store them
+    if (generated.length > 0) {
+      await prisma.workout.createMany({
+        data: generated.map((w) => ({
+          userId: user.id,
+          day: w.day,
+          type: w.type,
+          title: w.title,
+          exercises: w.exercises,
+          dayNumber: w.dayNumber,
+          source: "quiz",
+          weekNumber: 1,
+        })),
+      });
+
+      // Update user archetype if not set
+      if (!user.archetype) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { archetype: archetype.label, trainingDays },
+        });
+      }
+
+      workouts = generated;
+    }
+  }
+
+  // Fall back to static template if still no workouts
+  if (workouts.length === 0) {
+    workouts = getWorkoutsArray();
+  }
+
+  // Calculate workout type counts from actual workouts
+  const liftDays = workouts.filter((w) => w.type === "Lift").length;
+  const runDays = workouts.filter((w) => w.type === "Run").length;
+  const recoveryDays = workouts.filter((w) => w.type === "Recovery").length;
+  const swimDays = workouts.filter((w) => w.type === "Swim").length;
+  const bikeDays = workouts.filter((w) => w.type === "Bike").length;
+
+  const archetypeLabel = user?.archetype || "The Balanced Athlete";
+  const archetypeDescription = archetypeDescriptions[archetypeLabel] ||
+    "You thrive with equal focus on strength and endurance, building a well-rounded athletic foundation.";
 
   return (
     <main className="min-h-screen pb-20">
@@ -49,7 +175,7 @@ export default async function Dashboard() {
             <form
               action={async () => {
                 "use server";
-                await signOut({ redirectTo: "/" });
+                await signOut({ redirectTo: "/signin" });
               }}
             >
               <button
@@ -65,6 +191,9 @@ export default async function Dashboard() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-4xl px-6 py-8">
+        {/* Admin Panel - Only for admin */}
+        {isAdmin && <AdminPanel />}
+
         {/* Subscription Banner */}
         {!isSubscribed && (
           <div className="mb-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-6">
@@ -97,17 +226,39 @@ export default async function Dashboard() {
                 : "Preview your training plan below."}
             </p>
           </div>
-          {isSubscribed && <SubscriptionButton />}
         </div>
 
-        {/* Archetype Badge - Moved to top */}
+        {/* Race Mode Banner */}
+        {user?.racePlanActive && racePlanInfo && (
+          <div className="mb-8 rounded-xl border border-orange-500/30 bg-gradient-to-r from-orange-500/10 to-zinc-900 p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🏁</span>
+                <div>
+                  <p className="text-sm text-orange-400 font-medium">Race Training Mode</p>
+                  <p className="text-lg font-bold">
+                    Week {racePlanInfo.currentWeek} of {racePlanInfo.totalWeeks}
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30 capitalize">
+                {racePlanInfo.currentPhase} Phase
+              </span>
+            </div>
+            <div className="mt-3 h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-orange-500 to-green-500 transition-all duration-500"
+                style={{ width: `${(racePlanInfo.currentWeek / racePlanInfo.totalWeeks) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Archetype Badge */}
         <div className="mb-8 rounded-xl border border-orange-500/30 bg-orange-500/10 p-6 text-center">
           <p className="text-sm text-orange-400 mb-2">Your Training Archetype</p>
-          <p className="text-xl font-bold">The Balanced Athlete</p>
-          <p className="text-sm text-zinc-400 mt-2">
-            You thrive with equal focus on strength and endurance, building a
-            well-rounded athletic foundation.
-          </p>
+          <p className="text-xl font-bold">{archetypeLabel}</p>
+          <p className="text-sm text-zinc-400 mt-2">{archetypeDescription}</p>
         </div>
 
         {/* Subscription Status */}
@@ -123,26 +274,69 @@ export default async function Dashboard() {
           </div>
         )}
 
+        {/* Race Goal - For subscribed users */}
+        <div data-tour="race-goal">
+          {isSubscribed && <RaceGoal initialRaceGoal={raceGoal} racePlanActive={user?.racePlanActive} racePlanInfo={racePlanInfo} />}
+        </div>
+
         {/* Stats Overview */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div data-tour="stats" className="grid grid-cols-3 gap-4 mb-8">
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-center">
-            <p className="text-2xl font-bold text-orange-500">3</p>
+            <p className="text-2xl font-bold text-orange-500">{liftDays}</p>
             <p className="text-sm text-zinc-500">Lift Days</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-center">
-            <p className="text-2xl font-bold text-green-500">3</p>
+            <p className="text-2xl font-bold text-green-500">{runDays}</p>
             <p className="text-sm text-zinc-500">Run Days</p>
           </div>
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-center">
-            <p className="text-2xl font-bold text-purple-500">1</p>
+            <p className="text-2xl font-bold text-purple-500">{recoveryDays}</p>
             <p className="text-sm text-zinc-500">Recovery</p>
           </div>
+          {swimDays > 0 && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-center">
+              <p className="text-2xl font-bold text-cyan-500">{swimDays}</p>
+              <p className="text-sm text-zinc-500">Swim Days</p>
+            </div>
+          )}
+          {bikeDays > 0 && (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-center">
+              <p className="text-2xl font-bold text-yellow-500">{bikeDays}</p>
+              <p className="text-sm text-zinc-500">Bike Days</p>
+            </div>
+          )}
         </div>
+
+        {/* Training Day Selector */}
+        {isSubscribed && !user?.racePlanActive && (
+          <TrainingDaySelector currentDays={user?.trainingDays || 5} />
+        )}
 
         {/* Workouts */}
         <DashboardWorkouts workouts={workouts} isSubscribed={isSubscribed} />
 
+        {/* Account Settings - Discreet */}
+        {isSubscribed && (
+          <div className="mt-16 pt-6 border-t border-zinc-800/50">
+            <details className="group">
+              <summary className="flex items-center gap-2 text-xs text-zinc-600 cursor-pointer hover:text-zinc-500 transition-colors list-none">
+                <svg className="w-3 h-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                Account settings
+              </summary>
+              <div className="mt-4 space-y-3">
+                <CancelMembership />
+                <RefundRequest />
+              </div>
+            </details>
+          </div>
+        )}
+
       </div>
+
+      {/* Onboarding Tutorial for new subscribers */}
+      {isSubscribed && <OnboardingTutorial />}
     </main>
   );
 }

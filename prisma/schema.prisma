@@ -64,22 +64,55 @@ model User {
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
 
+  // Training preferences
+  trainingDays   Int      @default(5)
+  racePlanActive Boolean  @default(false)
+
+  // Race goal
+  raceName     String?
+  raceDate     DateTime?
+  raceDistance String?   // "5K", "10K", "Half Marathon", "Marathon", "Other"
+
   // Relations
   accounts      Account[]
   sessions      Session[]
   workouts      Workout[]
   trainingWeeks TrainingWeek[]
+  racePlans     RacePlan[]
 }
 
 model Workout {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  day       String   // "Monday", "Tuesday", etc.
-  type      String   // "Run", "Lift", "Recovery"
-  title     String
-  exercises Json     // Array of exercise objects
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day        String   // "Monday", "Tuesday", etc.
+  type       String   // "Run", "Lift", "Recovery", "Swim", "Bike"
+  title      String
+  exercises  Json     // Array of exercise objects
+  dayNumber  Int      @default(1)
+  source     String   @default("quiz")  // "quiz" or "race"
+  weekNumber Int      @default(1)
+  phase      String?  // "base", "build", "peak", "taper" (race only)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, source])
+  @@index([userId, weekNumber])
+}
+
+model RacePlan {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  raceName     String
+  raceDate     DateTime
+  raceDistance  String
+  totalWeeks   Int
+  currentWeek  Int      @default(1)
+  phases       Json
+  isActive     Boolean  @default(true)
+  generatedAt  DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Track user's current training week
@@ -133,8 +166,83 @@ model WorkoutLog {
   // Optional notes
   notes           String?
 
+  // Exercise tracking (weights, reps for lifting workouts)
+  exerciseLogs    Json?    // Array of { exerciseName, sets: [{ weight, reps, completed }] }
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([trainingWeekId])
+}
+
+// Analytics - Page views and funnel tracking
+model PageView {
+  id        String   @id @default(cuid())
+  path      String   // "/", "/quiz", "/checkout", etc.
+  visitorId String   // Anonymous visitor ID from cookie
+  userId    String?  // User ID if logged in
+  referrer  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([path])
+  @@index([visitorId])
+  @@index([createdAt])
+}
+
+model FunnelEvent {
+  id        String   @id @default(cuid())
+  step      String   // "landing", "quiz_start", "quiz_complete", "signup", "checkout", "subscribed"
+  visitorId String
+  userId    String?
+  metadata  Json?    // Additional data like quiz answers, etc.
+  createdAt DateTime @default(now())
+
+  @@index([step])
+  @@index([visitorId])
+  @@index([createdAt])
+}
+
+// Cancellation feedback (for win-back analysis)
+model CancellationFeedback {
+  id              String   @id @default(cuid())
+  userId          String
+  reason          String   // "too_expensive", "not_using", "found_alternative", "too_difficult", "not_seeing_results", "other"
+  otherReason     String?  // Free text if "other" selected
+  acceptedOffer   Boolean  @default(false) // Did they accept the return offer?
+  offerDiscount   Int?     // Discount percentage offered (e.g., 50)
+  cancelled       Boolean  @default(false) // Did they actually cancel?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([reason])
+  @@index([createdAt])
+}
+
+// Refund requests
+model RefundRequest {
+  id              String   @id @default(cuid())
+  userId          String
+  status          String   @default("pending") // "pending", "approved", "denied", "processed"
+
+  // Eligibility data at time of request
+  purchaseDate    DateTime
+  workoutDaysCompleted Int
+  eligible        Boolean
+  eligibilityReason String?
+
+  // Refund details
+  amountCents     Int?
+  stripeRefundId  String?
+
+  // Admin
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  denialReason    String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }

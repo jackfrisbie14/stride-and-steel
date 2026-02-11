@@ -8,7 +8,7 @@ import Link from "next/link";
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/checkout";
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const errorParam = searchParams.get("error");
 
   const [email, setEmail] = useState("");
