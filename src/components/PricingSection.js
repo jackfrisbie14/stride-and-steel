@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const ORIGINAL_PRICE = 49.99;
+const MONTHLY_PRICE = 49.99;
+const TRIAL_PRICE = 0.99;
+const TRIAL_DAYS = 7;
 
 function TermsModal({ onClose }) {
   useEffect(() => {
@@ -54,7 +56,7 @@ function TermsModal({ onClose }) {
           </ul>
 
           <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
-            <h4 className="text-white font-semibold mb-2">⚠️ IMPORTANT STATEMENT</h4>
+            <h4 className="text-white font-semibold mb-2">IMPORTANT STATEMENT</h4>
             <p className="mb-2">
               Please note that only fulfillment of <strong className="text-white">all</strong> the above requirements allows you to receive a full Voluntary Refund under "Money-back guarantee". For clarity, this "Money-back guarantee" does <strong className="text-white">not</strong> apply to the following cases:
             </p>
@@ -130,8 +132,8 @@ function TermsModal({ onClose }) {
           {/* Section 4 */}
           <h3 className="text-white font-bold text-base pt-4 border-t border-zinc-800">4. SUBSCRIPTION TERMS</h3>
           <ul className="list-disc pl-5 space-y-2">
-            <li>Your subscription will automatically renew at the end of each billing period at the then-current price (${ORIGINAL_PRICE}/month) unless you cancel before the renewal date.</li>
-            <li>Introductory or promotional pricing applies only to the initial billing period. Subsequent renewals will be charged at the standard subscription rate.</li>
+            <li>Your subscription begins with a {TRIAL_DAYS}-day trial period for ${TRIAL_PRICE}. After the trial period, your subscription will automatically renew at ${MONTHLY_PRICE}/month unless you cancel before the trial ends.</li>
+            <li>Subsequent renewals will be charged at the standard subscription rate of ${MONTHLY_PRICE}/month.</li>
             <li>You may cancel your subscription at any time through your account Settings or by contacting support. Cancellation will take effect at the end of your current billing period.</li>
             <li>No refunds or credits will be provided for partial billing periods upon cancellation.</li>
           </ul>
@@ -145,61 +147,11 @@ function TermsModal({ onClose }) {
   );
 }
 
-function CountdownTimer() {
-  const [timeLeft, setTimeLeft] = useState({ minutes: 14, seconds: 59 });
-
-  useEffect(() => {
-    // Get or set expiry time
-    let expiry = localStorage.getItem("ss_offer_expiry");
-    if (!expiry) {
-      expiry = Date.now() + 15 * 60 * 1000; // 15 minutes
-      localStorage.setItem("ss_offer_expiry", expiry.toString());
-    }
-
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const diff = parseInt(expiry) - now;
-
-      if (diff <= 0) {
-        setTimeLeft({ minutes: 0, seconds: 0 });
-        clearInterval(interval);
-        return;
-      }
-
-      const minutes = Math.floor(diff / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
-      setTimeLeft({ minutes, seconds });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="flex items-center justify-center gap-2 text-red-400 font-mono">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <span className="text-lg font-bold">
-        {String(timeLeft.minutes).padStart(2, "0")}:{String(timeLeft.seconds).padStart(2, "0")}
-      </span>
-      <span className="text-sm text-zinc-400">left at this price</span>
-    </div>
-  );
-}
-
-export default function PricingSection({ discount }) {
+export default function PricingSection() {
   const [showTerms, setShowTerms] = useState(false);
-  const discountPercent = discount?.discount || 0;
-  const discountedPrice = ORIGINAL_PRICE * (1 - discountPercent / 100);
-  const savings = ORIGINAL_PRICE - discountedPrice;
 
   return (
     <div className="w-full max-w-lg mx-auto mt-12">
-      {/* Urgency Banner */}
-      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
-        <CountdownTimer />
-      </div>
-
       {/* Main Pricing Card */}
       <div className="relative rounded-2xl border-2 border-orange-500 bg-gradient-to-b from-zinc-900 to-zinc-950 overflow-hidden">
         {/* Popular Badge */}
@@ -207,35 +159,17 @@ export default function PricingSection({ discount }) {
           MOST POPULAR
         </div>
 
-        {/* Discount Badge */}
-        {discountPercent > 0 && (
-          <div className="absolute top-0 left-0 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-br-xl">
-            {discountPercent}% OFF APPLIED
-          </div>
-        )}
-
         <div className="p-8">
           <h3 className="text-2xl font-bold text-center mb-2">Hybrid Athlete Pro</h3>
           <p className="text-zinc-400 text-center mb-6">Complete training system for runners who lift</p>
 
-          {/* Price */}
+          {/* Trial Price */}
           <div className="text-center mb-6">
-            {discountPercent > 0 ? (
-              <>
-                <p className="text-zinc-500 line-through text-xl mb-1">${ORIGINAL_PRICE}</p>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-5xl font-bold text-white">${discountedPrice.toFixed(2)}</span>
-                  <span className="text-zinc-400">first month</span>
-                </div>
-                <p className="text-zinc-500 text-sm mt-2">then ${ORIGINAL_PRICE}/month</p>
-                <p className="text-green-400 font-medium mt-1">You save ${savings.toFixed(2)} on your first month!</p>
-              </>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-5xl font-bold text-white">${ORIGINAL_PRICE}</span>
-                <span className="text-zinc-400">/month</span>
-              </div>
-            )}
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-5xl font-bold text-white">${TRIAL_PRICE}</span>
+            </div>
+            <p className="text-lg text-orange-400 font-medium mt-2">for your first {TRIAL_DAYS} days</p>
+            <p className="text-zinc-500 text-sm mt-2">then ${MONTHLY_PRICE}/month</p>
           </div>
 
           {/* Features */}
@@ -267,12 +201,12 @@ export default function PricingSection({ discount }) {
             href="/checkout"
             className="block w-full rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-4 text-center text-lg font-bold text-white transition-all hover:from-orange-600 hover:to-orange-700 hover:scale-[1.02] shadow-lg shadow-orange-500/25"
           >
-            Start My Training Plan →
+            Start 7-Day Trial for $0.99 →
           </Link>
 
           {/* Auto-renewal disclaimer */}
           <p className="mt-4 text-xs text-zinc-500 text-center leading-relaxed">
-            By continuing, you agree that your subscription will be auto-renewed at the full price of ${ORIGINAL_PRICE} USD each month at the end of the intro period unless you cancel in Settings. Please see our{" "}
+            By continuing, you agree to pay ${TRIAL_PRICE} today for a {TRIAL_DAYS}-day trial. After the trial, your subscription will auto-renew at ${MONTHLY_PRICE} USD/month unless you cancel in Settings. Please see our{" "}
             <button onClick={() => setShowTerms(true)} className="text-zinc-400 underline hover:text-zinc-300">
               Subscription terms
             </button>

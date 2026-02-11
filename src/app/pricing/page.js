@@ -62,9 +62,10 @@ function PricingContent() {
             <p className="mt-2 text-zinc-400">Full access to all features</p>
 
             <div className="mt-6">
-              <span className="text-5xl font-bold">$49.99</span>
-              <span className="text-zinc-400">/month</span>
+              <span className="text-5xl font-bold">$0.99</span>
             </div>
+            <p className="text-lg text-orange-400 font-medium mt-2">for your first 7 days</p>
+            <p className="text-zinc-500 text-sm mt-1">then $49.99/month</p>
 
             <ul className="mt-8 space-y-4 text-left">
               <li className="flex items-center gap-3">
@@ -104,11 +105,11 @@ function PricingContent() {
               disabled={loading}
               className="mt-8 w-full rounded-xl bg-orange-500 py-4 font-semibold text-white transition-colors hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Loading..." : "Start Your Subscription"}
+              {loading ? "Loading..." : "Start 7-Day Trial for $0.99"}
             </button>
 
-            <p className="mt-4 text-sm text-zinc-500">
-              Secure payment powered by Stripe
+            <p className="mt-4 text-xs text-zinc-500">
+              $0.99 charged today. After 7 days, $49.99/month. Cancel anytime.
             </p>
           </div>
         </div>

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import DiscountWheel from "@/components/DiscountWheel";
 import PricingSection from "@/components/PricingSection";
 
 // Calculate BMI
@@ -145,7 +144,6 @@ export default function Results() {
   const [commitment, setCommitment] = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [goal, setGoal] = useState(null);
-  const [discount, setDiscount] = useState(null);
   const [archetypeLabel, setArchetypeLabel] = useState(null);
 
   useEffect(() => {
@@ -207,11 +205,6 @@ export default function Results() {
         setGoal(goalData);
       }
 
-      // Check for existing discount
-      const savedDiscount = localStorage.getItem("ss_wheel_discount");
-      if (savedDiscount) {
-        setDiscount(JSON.parse(savedDiscount));
-      }
     }
   }, []);
 
@@ -379,13 +372,8 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Discount Wheel */}
-      <div className="mt-12 w-full">
-        <DiscountWheel onComplete={(result) => setDiscount(result)} />
-      </div>
-
       {/* Pricing Section */}
-      <PricingSection discount={discount} />
+      <PricingSection />
 
       <Link href="/welcome" className="mt-12 mb-8 text-sm text-zinc-500 hover:text-zinc-300">
         ← Back to Home

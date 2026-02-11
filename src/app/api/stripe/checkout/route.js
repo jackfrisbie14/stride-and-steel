@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, PRICE_ID } from "@/lib/stripe";
+import { stripe, PRICE_ID, TRIAL_PRICE_ID } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
@@ -49,17 +49,33 @@ export async function POST() {
       });
     }
 
-    // Create checkout session
+    // Create checkout session with $0.99 trial fee + 7-day free trial on subscription
+    const lineItems = [
+      {
+        price: PRICE_ID,
+        quantity: 1,
+      },
+    ];
+
+    // Add $0.99 one-time trial fee if configured
+    if (TRIAL_PRICE_ID) {
+      lineItems.push({
+        price: TRIAL_PRICE_ID,
+        quantity: 1,
+      });
+    }
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: "subscription",
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price: PRICE_ID,
-          quantity: 1,
+      line_items: lineItems,
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: {
+          userId: user.id,
         },
-      ],
+      },
       success_url: `${process.env.NEXTAUTH_URL?.trim()}/dashboard?success=true`,
       cancel_url: `${process.env.NEXTAUTH_URL?.trim()}/pricing?canceled=true`,
       metadata: {
