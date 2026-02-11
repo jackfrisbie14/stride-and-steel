@@ -308,7 +308,7 @@ export default async function Dashboard() {
         </div>
 
         {/* Training Day Selector */}
-        {isSubscribed && !user?.racePlanActive && (
+        {isSubscribed && (
           <TrainingDaySelector currentDays={user?.trainingDays || 5} />
         )}
 

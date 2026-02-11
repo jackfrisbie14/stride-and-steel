@@ -30,14 +30,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Don't regenerate during race mode
-    if (user.racePlanActive) {
-      return NextResponse.json(
-        { error: "Cannot change training days during race mode" },
-        { status: 400 }
-      );
-    }
-
     // Parse quiz answers for archetype
     const answersArray = Array.isArray(user.quizAnswers)
       ? user.quizAnswers
