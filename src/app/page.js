@@ -118,6 +118,15 @@ function SignInForm() {
             className="rounded-lg bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
 
+          <div className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-zinc-500 hover:text-orange-500"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
           {error && <p className="text-sm text-red-500">{error}</p>}
 
           <button
