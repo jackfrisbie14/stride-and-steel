@@ -108,6 +108,7 @@ export async function POST(request) {
       trainingDays: user.trainingDays || 5,
       experience,
       archetype: archetype.label,
+      archetypeRatios: archetype.ratios,
     });
 
     // Create RacePlan record

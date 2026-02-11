@@ -1,4 +1,5 @@
 import { getAnthropicClient } from "./anthropic";
+import { archetypes } from "./archetypes";
 
 /**
  * Calculate phase breakdown for race training plan.
@@ -54,7 +55,7 @@ function getRaceGuidance(raceDistance) {
     if (is703) distances = "70.3 (1.9km swim, 90km bike, 21.1km run)";
     if (isIronman) distances = "Ironman (3.8km swim, 180km bike, 42.2km run)";
 
-    return `This is a triathlon training plan for ${distances}. Include swim, bike, and run workouts. Add brick workouts (bike-to-run transitions). Swim workouts should include drills, intervals, and endurance sets. Bike workouts should include easy rides, tempo rides, and long rides. Run workouts follow standard progressions. Include 1-2 strength sessions focused on functional movements.`;
+    return `This is a triathlon training plan for ${distances}. Include swim, bike, and run workouts. Add brick workouts (bike-to-run transitions). Swim workouts should include drills, intervals, and endurance sets. Bike workouts should include easy rides, tempo rides, and long rides. Run workouts follow standard progressions. Strength sessions should focus on functional movements.`;
   }
 
   return "Build a well-rounded plan with progressive overload. Include a mix of easy runs, tempo, intervals, long runs, and recovery. Strength training should complement the running program.";
@@ -63,13 +64,17 @@ function getRaceGuidance(raceDistance) {
 /**
  * Build a prompt for a batch of weeks.
  */
-function buildBatchPrompt({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, totalWeeks, phases, startWeek, endWeek }) {
+function buildBatchPrompt({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, totalWeeks, phases, startWeek, endWeek }) {
   const raceGuidance = getRaceGuidance(raceDistance);
   const isTriathlon = raceDistance.toLowerCase().includes("triathlon") || raceDistance.toLowerCase().includes("ironman") || raceDistance.toLowerCase().includes("70.3");
 
   const workoutTypes = isTriathlon
     ? '"Run", "Lift", "Swim", "Bike", "Recovery"'
     : '"Run", "Lift", "Recovery"';
+
+  // Calculate minimum lift days from archetype ratios
+  const liftRatio = archetypeRatios?.lift || 35;
+  const minLiftDays = Math.max(1, Math.round((liftRatio / 100) * trainingDays));
 
   // Determine which phases these weeks fall into
   const relevantPhases = phases.filter(p => p.startWeek <= endWeek && p.endWeek >= startWeek);
@@ -81,6 +86,11 @@ ATHLETE PROFILE:
 - Experience: ${experience} | Archetype: ${archetype}
 - Training Days Per Week: ${trainingDays}
 - Total Plan: ${totalWeeks} weeks | This batch: Weeks ${startWeek}-${endWeek}
+
+ARCHETYPE STRENGTH PREFERENCE:
+- This athlete's archetype is ${archetype} — they prioritize strength at ${liftRatio}% of their training.
+- Include AT LEAST ${minLiftDays} dedicated lifting/strength days per week (upper body, lower body, or full body).
+- Lifting days should be full strength sessions, not just a few exercises tacked onto a run.
 
 PHASES:
 ${phases.map(p => `- ${p.name.toUpperCase()}: Weeks ${p.startWeek}-${p.endWeek}`).join("\n")}
@@ -121,9 +131,10 @@ Respond with ONLY valid JSON (no markdown):
  * @param {number} params.trainingDays
  * @param {string} params.experience
  * @param {string} params.archetype
+ * @param {Object} [params.archetypeRatios] - { lift, run, recovery } percentages
  * @returns {Promise<{ totalWeeks, phases, weeks }>}
  */
-export async function generateRacePlan({ raceName, raceDate, raceDistance, trainingDays, experience, archetype }) {
+export async function generateRacePlan({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios }) {
   // Calculate weeks until race (cap 4-24)
   const now = new Date();
   const raceDay = new Date(raceDate);
@@ -147,6 +158,7 @@ export async function generateRacePlan({ raceName, raceDate, raceDistance, train
       trainingDays,
       experience,
       archetype,
+      archetypeRatios,
       totalWeeks,
       phases,
       startWeek,
