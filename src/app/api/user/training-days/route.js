@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { determineArchetype, parseExperience } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
+import { generateRacePlan } from "@/lib/race-plan-generator";
 
 export async function POST(request) {
   try {
@@ -70,6 +71,70 @@ export async function POST(request) {
       where: { id: user.id },
       data: { trainingDays },
     });
+
+    // If race plan is active, regenerate it with the new day count
+    if (user.racePlanActive) {
+      const activePlan = await prisma.racePlan.findFirst({
+        where: { userId: user.id, isActive: true },
+      });
+
+      if (activePlan) {
+        const plan = await generateRacePlan({
+          raceName: activePlan.raceName,
+          raceDate: activePlan.raceDate.toISOString(),
+          raceDistance: activePlan.raceDistance,
+          trainingDays,
+          experience,
+          archetype: archetype.label,
+        });
+
+        // Deactivate old plan
+        await prisma.racePlan.update({
+          where: { id: activePlan.id },
+          data: { isActive: false },
+        });
+
+        // Create new plan preserving current week
+        await prisma.racePlan.create({
+          data: {
+            userId: user.id,
+            raceName: activePlan.raceName,
+            raceDate: activePlan.raceDate,
+            raceDistance: activePlan.raceDistance,
+            totalWeeks: plan.totalWeeks,
+            currentWeek: Math.min(activePlan.currentWeek, plan.totalWeeks),
+            phases: plan.phases,
+            isActive: true,
+          },
+        });
+
+        // Replace race workouts
+        await prisma.workout.deleteMany({
+          where: { userId: user.id, source: "race" },
+        });
+
+        const workoutRecords = [];
+        for (const week of plan.weeks) {
+          for (const workout of week.workouts) {
+            workoutRecords.push({
+              userId: user.id,
+              day: workout.day,
+              type: workout.type,
+              title: workout.title,
+              exercises: workout.exercises,
+              dayNumber: workout.dayNumber,
+              source: "race",
+              weekNumber: week.weekNumber,
+              phase: week.phase,
+            });
+          }
+        }
+
+        if (workoutRecords.length > 0) {
+          await prisma.workout.createMany({ data: workoutRecords });
+        }
+      }
+    }
 
     return NextResponse.json({ success: true, trainingDays });
   } catch (error) {
