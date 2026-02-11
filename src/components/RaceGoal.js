@@ -170,7 +170,7 @@ export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo
         <p className="text-sm text-zinc-400">
           Our AI coach is building a personalized training plan tailored to your race goal and fitness level.
         </p>
-        <p className="text-xs text-zinc-500 mt-2">This may take 10-15 seconds</p>
+        <p className="text-xs text-zinc-500 mt-2">This could take up to a few minutes</p>
       </div>
     );
   }
