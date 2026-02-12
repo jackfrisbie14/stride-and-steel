@@ -134,6 +134,52 @@ export async function POST(request) {
               stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
             },
           });
+
+          // Track first real payment (not the trial start)
+          // "subscription_cycle" means a real recurring payment after trial
+          if (invoice.billing_reason === "subscription_cycle" && !user.firstPaidAt) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { firstPaidAt: new Date() },
+            });
+          }
+
+          // Reward referrer when referred user makes their first real payment
+          if (invoice.billing_reason === "subscription_cycle" && user.referredBy && !user.referralRewardApplied) {
+            try {
+              const referrer = await prisma.user.findUnique({
+                where: { email: user.referredBy },
+              });
+
+              if (referrer?.stripeSubscriptionId) {
+                // Create or retrieve the referral reward coupon
+                let coupon;
+                try {
+                  coupon = await stripe.coupons.retrieve("referral_reward_50");
+                } catch {
+                  coupon = await stripe.coupons.create({
+                    id: "referral_reward_50",
+                    percent_off: 50,
+                    duration: "once",
+                    name: "Referral Reward - 50% Off",
+                  });
+                }
+
+                // Apply to referrer's subscription
+                await stripe.subscriptions.update(referrer.stripeSubscriptionId, {
+                  coupon: coupon.id,
+                });
+              }
+
+              // Mark reward as applied regardless (prevent retries)
+              await prisma.user.update({
+                where: { id: user.id },
+                data: { referralRewardApplied: true },
+              });
+            } catch (e) {
+              console.error("Referral reward error:", e);
+            }
+          }
         }
         break;
       }

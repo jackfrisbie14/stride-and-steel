@@ -12,6 +12,7 @@ import RefundRequest from "@/components/RefundRequest";
 import CancelMembership from "@/components/CancelMembership";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
 import CustomizationPanel from "@/components/CustomizationPanel";
+import EnjoymentPrompt from "@/components/EnjoymentPrompt";
 import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
@@ -49,6 +50,10 @@ export default async function Dashboard() {
       experience: true,
       raceGoalTime: true,
       quizAnswers: true,
+      referredBy: true,
+      referralRewardApplied: true,
+      enjoymentPromptDismissed: true,
+      firstPaidAt: true,
     },
   });
 
@@ -64,6 +69,12 @@ export default async function Dashboard() {
     FREE_ACCESS_EMAILS.includes(session.user.email) ||
     (user?.stripeCurrentPeriodEnd &&
     new Date(user.stripeCurrentPeriodEnd) > new Date());
+
+  // Enjoyment prompt: show after 30 days of first paid month
+  const showEnjoymentPrompt = isSubscribed
+    && user?.firstPaidAt
+    && new Date(user.firstPaidAt).getTime() + 30 * 24 * 60 * 60 * 1000 < Date.now()
+    && !user?.enjoymentPromptDismissed;
 
   // Get race plan info if active
   let racePlanInfo = null;
@@ -362,6 +373,9 @@ export default async function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* Enjoyment Prompt + Referral */}
+        {showEnjoymentPrompt && <EnjoymentPrompt userEmail={session.user.email} />}
 
         {/* Workouts */}
         <DashboardWorkouts workouts={workouts} isSubscribed={isSubscribed} />

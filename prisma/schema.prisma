@@ -72,6 +72,14 @@ model User {
   experience      String?  // "beginner", "intermediate", "advanced" — overrides quiz-derived value
   raceGoalTime    String?  // e.g. "3:45:00", "1:30:00"
 
+  // Referral system
+  referredBy              String?           // Email of the user who referred them
+  referralRewardApplied   Boolean @default(false) // Whether referrer got their 50% discount
+
+  // Enjoyment prompt
+  enjoymentPromptDismissed Boolean @default(false) // User has responded/dismissed the prompt
+  firstPaidAt              DateTime?         // When first real (non-trial) subscription payment was made
+
   // Race goal
   raceName     String?
   raceDate     DateTime?
