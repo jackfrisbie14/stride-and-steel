@@ -5,7 +5,7 @@ import { archetypes } from "./archetypes";
  * Calculate phase breakdown for race training plan.
  * Base 35%, Build 30%, Peak 20%, Taper 15%
  */
-function calculatePhases(totalWeeks) {
+export function calculatePhases(totalWeeks) {
   const baseWeeks = Math.max(1, Math.round(totalWeeks * 0.35));
   const buildWeeks = Math.max(1, Math.round(totalWeeks * 0.30));
   const peakWeeks = Math.max(1, Math.round(totalWeeks * 0.20));
@@ -64,7 +64,15 @@ function getRaceGuidance(raceDistance) {
 /**
  * Build a prompt for a batch of weeks.
  */
-function buildBatchPrompt({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, totalWeeks, phases, startWeek, endWeek }) {
+const splitLabels = {
+  ppl: "Push/Pull/Legs",
+  arnold: "Arnold Split (Chest+Back, Shoulders+Arms, Legs)",
+  bro_split: "Bro Split (Chest, Back, Shoulders, Arms, Legs)",
+  upper_lower: "Upper/Lower",
+  full_body: "Full Body",
+};
+
+export function buildBatchPrompt({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, totalWeeks, phases, startWeek, endWeek, liftingSplit, customExercises }) {
   const raceGuidance = getRaceGuidance(raceDistance);
   const isTriathlon = raceDistance.toLowerCase().includes("triathlon") || raceDistance.toLowerCase().includes("ironman") || raceDistance.toLowerCase().includes("70.3");
 
@@ -91,6 +99,9 @@ ARCHETYPE STRENGTH PREFERENCE:
 - This athlete's archetype is ${archetype} — they prioritize strength at ${liftRatio}% of their training.
 - Include AT LEAST ${minLiftDays} dedicated lifting/strength days per week (upper body, lower body, or full body).
 - Lifting days should be full strength sessions, not just a few exercises tacked onto a run.
+${liftingSplit || (customExercises && customExercises.length > 0) ? `
+LIFTING PREFERENCES:${liftingSplit ? `\n- Preferred lifting split: ${splitLabels[liftingSplit] || liftingSplit}` : ""}${customExercises && customExercises.length > 0 ? `\n- Favorite exercises to include: ${customExercises.join(", ")}` : ""}
+- Structure lifting days using this split pattern. Incorporate the athlete's favorite exercises where appropriate.` : ""}
 
 PHASES:
 ${phases.map(p => `- ${p.name.toUpperCase()}: Weeks ${p.startWeek}-${p.endWeek}`).join("\n")}
@@ -134,7 +145,7 @@ Respond with ONLY valid JSON (no markdown):
  * @param {Object} [params.archetypeRatios] - { lift, run, recovery } percentages
  * @returns {Promise<{ totalWeeks, phases, weeks }>}
  */
-export async function generateRacePlan({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios }) {
+export async function generateRacePlan({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, liftingSplit, customExercises }) {
   // Calculate weeks until race (cap 4-24)
   const now = new Date();
   const raceDay = new Date(raceDate);
@@ -163,6 +174,8 @@ export async function generateRacePlan({ raceName, raceDate, raceDistance, train
       phases,
       startWeek,
       endWeek,
+      liftingSplit,
+      customExercises,
     });
 
     // Try up to 2 times per batch

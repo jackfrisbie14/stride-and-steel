@@ -65,8 +65,10 @@ model User {
   stripeCurrentPeriodEnd DateTime?
 
   // Training preferences
-  trainingDays   Int      @default(5)
-  racePlanActive Boolean  @default(false)
+  trainingDays    Int      @default(5)
+  racePlanActive  Boolean  @default(false)
+  liftingSplit    String?  // "ppl", "arnold", "upper_lower", "bro_split", "full_body"
+  customExercises Json?    // ["Deadlift", "Barbell Hip Thrust", ...]
 
   // Race goal
   raceName     String?

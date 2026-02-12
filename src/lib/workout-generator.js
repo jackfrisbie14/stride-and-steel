@@ -1,4 +1,5 @@
 import { archetypes } from "./archetypes";
+import { getAnthropicClient } from "./anthropic";
 
 // ─── Workout Template Pools ────────────────────────────────────────────
 
@@ -112,6 +113,324 @@ const liftTemplates = {
       ],
     },
   },
+  // ─── PPL Templates ──────────────────────────────────────────────────
+  push: {
+    beginner: {
+      title: "Push Day",
+      exercises: [
+        { name: "Dumbbell Bench Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Dumbbell Shoulder Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Incline Dumbbell Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Lateral Raises", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Tricep Pushdowns", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Overhead Tricep Extension", sets: 2, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Push Day",
+      exercises: [
+        { name: "Bench Press", sets: 4, reps: "6-8", rest: "2-3 min" },
+        { name: "Overhead Press", sets: 4, reps: "8-10", rest: "2 min" },
+        { name: "Incline Dumbbell Press", sets: 3, reps: "8-10", rest: "90 sec" },
+        { name: "Lateral Raises", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Tricep Pushdowns", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Overhead Tricep Extension", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Push Day",
+      exercises: [
+        { name: "Bench Press", sets: 5, reps: "3-5", rest: "3 min" },
+        { name: "Overhead Press", sets: 4, reps: "5-8", rest: "2-3 min" },
+        { name: "Incline Dumbbell Press", sets: 4, reps: "8-10", rest: "90 sec" },
+        { name: "Dips", sets: 3, reps: "8-12", rest: "90 sec" },
+        { name: "Lateral Raises", sets: 4, reps: "12-15", rest: "60 sec" },
+        { name: "Skull Crushers", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+  },
+  pull: {
+    beginner: {
+      title: "Pull Day",
+      exercises: [
+        { name: "Lat Pulldown", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Seated Cable Rows", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Dumbbell Rows", sets: 3, reps: "10 each arm", rest: "90 sec" },
+        { name: "Bicep Curls", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 2, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Pull Day",
+      exercises: [
+        { name: "Pull-ups", sets: 4, reps: "6-10", rest: "2 min" },
+        { name: "Bent Over Rows", sets: 4, reps: "8-10", rest: "2 min" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Cable Rows", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Barbell Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Pull Day",
+      exercises: [
+        { name: "Weighted Pull-ups", sets: 4, reps: "5-8", rest: "2-3 min" },
+        { name: "Pendlay Rows", sets: 4, reps: "6-8", rest: "2 min" },
+        { name: "T-Bar Rows", sets: 3, reps: "8-10", rest: "90 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Barbell Curls", sets: 3, reps: "8-10", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+  },
+  legs: {
+    beginner: {
+      title: "Leg Day",
+      exercises: [
+        { name: "Goblet Squats", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Dumbbell Romanian Deadlift", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Walking Lunges", sets: 3, reps: "10 each leg", rest: "90 sec" },
+        { name: "Leg Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Calf Raises", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Plank Hold", sets: 3, reps: "30-45 sec", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Leg Day",
+      exercises: [
+        { name: "Barbell Back Squat", sets: 4, reps: "6-8", rest: "3 min" },
+        { name: "Romanian Deadlift", sets: 4, reps: "8-10", rest: "2-3 min" },
+        { name: "Walking Lunges", sets: 3, reps: "10 each leg", rest: "2 min" },
+        { name: "Leg Curl", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Calf Raises", sets: 4, reps: "12-15", rest: "60 sec" },
+        { name: "Plank Hold", sets: 3, reps: "45-60 sec", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Leg Day",
+      exercises: [
+        { name: "Barbell Back Squat", sets: 5, reps: "3-5", rest: "3-4 min" },
+        { name: "Deadlift", sets: 4, reps: "3-5", rest: "3-4 min" },
+        { name: "Bulgarian Split Squats", sets: 3, reps: "8 each leg", rest: "2 min" },
+        { name: "Hip Thrusts", sets: 4, reps: "8-10", rest: "2 min" },
+        { name: "Nordic Hamstring Curls", sets: 3, reps: "6-8", rest: "90 sec" },
+        { name: "Calf Raises", sets: 4, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+  },
+  // ─── Arnold Split Templates ─────────────────────────────────────────
+  chestBack: {
+    beginner: {
+      title: "Chest & Back",
+      exercises: [
+        { name: "Dumbbell Bench Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Lat Pulldown", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Incline Dumbbell Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Seated Cable Rows", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Cable Flyes", sets: 2, reps: "12-15", rest: "60 sec" },
+        { name: "Face Pulls", sets: 2, reps: "15-20", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Chest & Back",
+      exercises: [
+        { name: "Bench Press", sets: 4, reps: "6-8", rest: "2-3 min" },
+        { name: "Pull-ups", sets: 4, reps: "6-10", rest: "2 min" },
+        { name: "Incline Dumbbell Press", sets: 3, reps: "8-10", rest: "90 sec" },
+        { name: "Bent Over Rows", sets: 4, reps: "8-10", rest: "2 min" },
+        { name: "Cable Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Chest & Back",
+      exercises: [
+        { name: "Bench Press", sets: 5, reps: "3-5", rest: "3 min" },
+        { name: "Weighted Pull-ups", sets: 4, reps: "5-8", rest: "2-3 min" },
+        { name: "Incline Barbell Press", sets: 4, reps: "6-8", rest: "2 min" },
+        { name: "Pendlay Rows", sets: 4, reps: "6-8", rest: "2 min" },
+        { name: "Dips", sets: 3, reps: "8-12", rest: "90 sec" },
+        { name: "Cable Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+  },
+  shouldersArms: {
+    beginner: {
+      title: "Shoulders & Arms",
+      exercises: [
+        { name: "Dumbbell Shoulder Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Lateral Raises", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Bicep Curls", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Tricep Pushdowns", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 2, reps: "12-15", rest: "60 sec" },
+        { name: "Overhead Tricep Extension", sets: 2, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Shoulders & Arms",
+      exercises: [
+        { name: "Overhead Press", sets: 4, reps: "8-10", rest: "2 min" },
+        { name: "Lateral Raises", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Rear Delt Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Barbell Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Skull Crushers", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 2, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Shoulders & Arms",
+      exercises: [
+        { name: "Overhead Press", sets: 4, reps: "5-8", rest: "2-3 min" },
+        { name: "Lateral Raises", sets: 4, reps: "12-15", rest: "60 sec" },
+        { name: "Rear Delt Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Barbell Curls", sets: 4, reps: "8-10", rest: "60 sec" },
+        { name: "Close-Grip Bench Press", sets: 3, reps: "8-10", rest: "90 sec" },
+        { name: "Hammer Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+  },
+  // ─── Bro Split Templates ───────────────────────────────────────────
+  chest: {
+    beginner: {
+      title: "Chest Day",
+      exercises: [
+        { name: "Dumbbell Bench Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Incline Dumbbell Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Cable Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Push-ups", sets: 3, reps: "10-15", rest: "60 sec" },
+        { name: "Dumbbell Pullover", sets: 2, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Chest Day",
+      exercises: [
+        { name: "Bench Press", sets: 4, reps: "6-8", rest: "2-3 min" },
+        { name: "Incline Dumbbell Press", sets: 4, reps: "8-10", rest: "90 sec" },
+        { name: "Cable Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Dips", sets: 3, reps: "8-12", rest: "90 sec" },
+        { name: "Dumbbell Pullover", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Chest Day",
+      exercises: [
+        { name: "Bench Press", sets: 5, reps: "3-5", rest: "3 min" },
+        { name: "Incline Barbell Press", sets: 4, reps: "6-8", rest: "2-3 min" },
+        { name: "Weighted Dips", sets: 3, reps: "8-10", rest: "2 min" },
+        { name: "Cable Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Dumbbell Pullover", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+  },
+  back: {
+    beginner: {
+      title: "Back Day",
+      exercises: [
+        { name: "Lat Pulldown", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Seated Cable Rows", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Dumbbell Rows", sets: 3, reps: "10 each arm", rest: "90 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Back Extension", sets: 2, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Back Day",
+      exercises: [
+        { name: "Pull-ups", sets: 4, reps: "6-10", rest: "2 min" },
+        { name: "Bent Over Rows", sets: 4, reps: "8-10", rest: "2 min" },
+        { name: "Cable Rows", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Back Extension", sets: 3, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Back Day",
+      exercises: [
+        { name: "Weighted Pull-ups", sets: 4, reps: "5-8", rest: "2-3 min" },
+        { name: "Pendlay Rows", sets: 4, reps: "6-8", rest: "2 min" },
+        { name: "T-Bar Rows", sets: 3, reps: "8-10", rest: "90 sec" },
+        { name: "Cable Rows", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+      ],
+    },
+  },
+  shoulders: {
+    beginner: {
+      title: "Shoulder Day",
+      exercises: [
+        { name: "Dumbbell Shoulder Press", sets: 3, reps: "10-12", rest: "90 sec" },
+        { name: "Lateral Raises", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Front Raises", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Shrugs", sets: 2, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Shoulder Day",
+      exercises: [
+        { name: "Overhead Press", sets: 4, reps: "8-10", rest: "2 min" },
+        { name: "Lateral Raises", sets: 4, reps: "12-15", rest: "60 sec" },
+        { name: "Rear Delt Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Face Pulls", sets: 3, reps: "15-20", rest: "60 sec" },
+        { name: "Shrugs", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Shoulder Day",
+      exercises: [
+        { name: "Overhead Press", sets: 5, reps: "5-8", rest: "2-3 min" },
+        { name: "Arnold Press", sets: 4, reps: "8-10", rest: "90 sec" },
+        { name: "Lateral Raises", sets: 4, reps: "12-15", rest: "60 sec" },
+        { name: "Rear Delt Flyes", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Shrugs", sets: 4, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+  },
+  arms: {
+    beginner: {
+      title: "Arms Day",
+      exercises: [
+        { name: "Bicep Curls", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Tricep Pushdowns", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Overhead Tricep Extension", sets: 3, reps: "12-15", rest: "60 sec" },
+        { name: "Concentration Curls", sets: 2, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+    intermediate: {
+      title: "Arms Day",
+      exercises: [
+        { name: "Barbell Curls", sets: 4, reps: "8-10", rest: "60 sec" },
+        { name: "Skull Crushers", sets: 4, reps: "8-10", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Tricep Pushdowns", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Incline Dumbbell Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Overhead Tricep Extension", sets: 3, reps: "10-12", rest: "60 sec" },
+      ],
+    },
+    advanced: {
+      title: "Arms Day",
+      exercises: [
+        { name: "Barbell Curls", sets: 4, reps: "6-8", rest: "90 sec" },
+        { name: "Close-Grip Bench Press", sets: 4, reps: "6-8", rest: "90 sec" },
+        { name: "Preacher Curls", sets: 3, reps: "8-10", rest: "60 sec" },
+        { name: "Skull Crushers", sets: 3, reps: "8-10", rest: "60 sec" },
+        { name: "Hammer Curls", sets: 3, reps: "10-12", rest: "60 sec" },
+        { name: "Tricep Kickbacks", sets: 3, reps: "12-15", rest: "60 sec" },
+      ],
+    },
+  },
+};
+
+// ─── Split Category Rotations ─────────────────────────────────────────
+
+const splitRotations = {
+  ppl: ["push", "pull", "legs"],
+  arnold: ["chestBack", "shouldersArms", "legs"],
+  bro_split: ["chest", "back", "shoulders", "arms", "legs"],
+  upper_lower: ["upperBody", "lowerBody"],
+  full_body: ["fullBody"],
 };
 
 const runTemplates = {
@@ -283,11 +602,11 @@ function allocateDayTypes(trainingDays, ratios) {
 
 // ─── Schedule Builder ──────────────────────────────────────────────────
 
-function buildSchedule(liftCount, runCount, recoveryCount, experience) {
+function buildSchedule(liftCount, runCount, recoveryCount, experience, liftingSplit) {
   const workouts = [];
 
-  // Select lift templates: rotate upper/lower/full body
-  const liftTypes = ["upperBody", "lowerBody", "fullBody"];
+  // Select lift templates: use split rotation or default upper/lower/full body
+  const liftTypes = (liftingSplit && splitRotations[liftingSplit]) || ["upperBody", "lowerBody", "fullBody"];
   const liftWorkouts = [];
   for (let i = 0; i < liftCount; i++) {
     const liftType = liftTypes[i % liftTypes.length];
@@ -368,6 +687,88 @@ function buildSchedule(liftCount, runCount, recoveryCount, experience) {
   return workouts;
 }
 
+// ─── AI Custom Workout Generator ──────────────────────────────────────
+
+const splitLabels = {
+  ppl: "Push/Pull/Legs",
+  arnold: "Arnold Split (Chest+Back, Shoulders+Arms, Legs)",
+  bro_split: "Bro Split (Chest, Back, Shoulders, Arms, Legs)",
+  upper_lower: "Upper/Lower",
+  full_body: "Full Body",
+};
+
+async function generateCustomWorkouts({ archetype, trainingDays, experience, liftingSplit, customExercises }) {
+  const archetypeData = typeof archetype === "string"
+    ? (archetypes[archetype] || Object.values(archetypes).find(a => a.label === archetype) || archetypes.balancedAthlete)
+    : archetype;
+
+  const splitLabel = splitLabels[liftingSplit] || "default rotation";
+  const exerciseList = Array.isArray(customExercises) ? customExercises.join(", ") : "";
+
+  const prompt = `You are a certified personal trainer creating a weekly workout plan.
+
+ATHLETE PROFILE:
+- Archetype: ${archetypeData.label} (${archetypeData.description})
+- Training Days Per Week: ${trainingDays}
+- Experience Level: ${experience}
+- Lift/Run/Recovery ratio: ${archetypeData.ratios.lift}% lift, ${archetypeData.ratios.run}% run, ${archetypeData.ratios.recovery}% recovery
+
+LIFTING PREFERENCES:
+- Preferred lifting split: ${splitLabel}
+${exerciseList ? `- Favorite exercises to incorporate: ${exerciseList}` : ""}
+- Structure lifting days using this split pattern.
+${exerciseList ? "- Incorporate the athlete's favorite exercises into the appropriate workout days where they naturally fit." : ""}
+
+REQUIREMENTS:
+1. Generate EXACTLY ${trainingDays} workouts for one week
+2. Workout types: "Run", "Lift", "Recovery"
+3. Allocate days roughly matching the archetype ratios (at least 1 lift, 1 run, 1 recovery)
+4. Lift exercises format: { "name": "...", "sets": 3, "reps": "8-10", "rest": "90 sec" }
+5. Run exercises format: { "name": "...", "duration": "...", "pace": "...", "notes": "..." }
+6. Recovery exercises format: { "name": "...", "duration": "...", "notes": "..." }
+7. Days: Monday through Sunday, dayNumber 1-${trainingDays}
+8. 4-7 exercises per workout
+9. Alternate lift and run days. Place long run on Saturday if possible, recovery on Sunday if possible.
+
+Respond with ONLY valid JSON (no markdown):
+{
+  "workouts": [
+    { "dayNumber": 1, "day": "Monday", "type": "Lift", "title": "Push Day", "exercises": [...] }
+  ]
+}`;
+
+  const client = await getAnthropicClient();
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await client.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4096,
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      const text = response.content[0]?.text || "";
+      let jsonStr = text.trim();
+      if (jsonStr.startsWith("```")) {
+        jsonStr = jsonStr.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+      }
+
+      const result = JSON.parse(jsonStr);
+
+      if (!result.workouts || !Array.isArray(result.workouts) || result.workouts.length === 0) {
+        throw new Error("Invalid response: missing workouts array");
+      }
+
+      return result.workouts;
+    } catch (error) {
+      console.error(`Custom workout generation attempt ${attempt + 1} failed:`, error.message);
+      if (attempt === 1) {
+        throw new Error("Failed to generate custom workouts after 2 attempts");
+      }
+    }
+  }
+}
+
 // ─── Main Generator ────────────────────────────────────────────────────
 
 /**
@@ -377,13 +778,21 @@ function buildSchedule(liftCount, runCount, recoveryCount, experience) {
  * @param {Object} params.archetype - Archetype object from determineArchetype()
  * @param {number} params.trainingDays - Number of training days (3-7)
  * @param {string} params.experience - "beginner", "intermediate", or "advanced"
- * @returns {Array} Array of workout objects matching { day, dayNumber, type, title, exercises }
+ * @param {string} [params.liftingSplit] - "ppl", "arnold", "upper_lower", "bro_split", "full_body"
+ * @param {string[]} [params.customExercises] - Array of exercise names to incorporate
+ * @returns {Array|Promise<Array>} Array of workout objects matching { day, dayNumber, type, title, exercises }
  */
-export function generateQuizWorkouts({ archetype, trainingDays = 5, experience = "intermediate" }) {
+export function generateQuizWorkouts({ archetype, trainingDays = 5, experience = "intermediate", liftingSplit, customExercises }) {
   const archetypeData = typeof archetype === "string" ? archetypes[archetype] : archetype;
   const ratios = archetypeData?.ratios || archetypes.balancedAthlete.ratios;
   const days = Math.max(3, Math.min(7, trainingDays));
 
+  // Custom exercises path: use AI to generate workouts
+  if (customExercises && Array.isArray(customExercises) && customExercises.length > 0) {
+    return generateCustomWorkouts({ archetype, trainingDays: days, experience, liftingSplit, customExercises });
+  }
+
+  // Split-only or default path: use static templates
   const { liftCount, runCount, recoveryCount } = allocateDayTypes(days, ratios);
-  return buildSchedule(liftCount, runCount, recoveryCount, experience);
+  return buildSchedule(liftCount, runCount, recoveryCount, experience, liftingSplit);
 }

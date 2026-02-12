@@ -12,6 +12,7 @@ import RefundRequest from "@/components/RefundRequest";
 import CancelMembership from "@/components/CancelMembership";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
 import TrainingDaySelector from "@/components/TrainingDaySelector";
+import WorkoutPreferences from "@/components/WorkoutPreferences";
 import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
@@ -44,6 +45,8 @@ export default async function Dashboard() {
       archetype: true,
       trainingDays: true,
       racePlanActive: true,
+      liftingSplit: true,
+      customExercises: true,
       quizAnswers: true,
     },
   });
@@ -109,7 +112,13 @@ export default async function Dashboard() {
     const trainingDays = user.trainingDays || parseTrainingDays(answersArray[2]);
     const experience = parseExperience(answersArray[3]);
 
-    const generated = generateQuizWorkouts({ archetype, trainingDays, experience });
+    const generated = await generateQuizWorkouts({
+      archetype,
+      trainingDays,
+      experience,
+      liftingSplit: user.liftingSplit || null,
+      customExercises: user.customExercises || null,
+    });
 
     // Store them
     if (generated.length > 0) {
@@ -367,6 +376,15 @@ export default async function Dashboard() {
 
         {/* Workouts */}
         <DashboardWorkouts workouts={workouts} isSubscribed={isSubscribed} />
+
+        {/* Workout Preferences - For subscribed users */}
+        {isSubscribed && (
+          <WorkoutPreferences
+            currentSplit={user?.liftingSplit}
+            currentExercises={user?.customExercises}
+            racePlanActive={user?.racePlanActive}
+          />
+        )}
 
         {/* Account Settings - Discreet */}
         {isSubscribed && (
