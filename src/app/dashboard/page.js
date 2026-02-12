@@ -379,17 +379,13 @@ export default async function Dashboard() {
           )}
         </div>
 
-        {/* Training Day Selector */}
-        {isSubscribed && (
-          <TrainingDaySelector currentDays={user?.trainingDays || 5} />
-        )}
-
         {/* Workouts */}
         <DashboardWorkouts workouts={workouts} isSubscribed={isSubscribed} />
 
         {/* Customization Settings - For subscribed users */}
         {isSubscribed && (
           <CustomizationPanel>
+            <TrainingDaySelector currentDays={user?.trainingDays || 5} />
             <WorkoutPreferences
               currentSplit={user?.liftingSplit}
               currentExercises={user?.customExercises}
