@@ -14,20 +14,20 @@ export default function TrainingDaySelector({ currentDays }) {
     }
   }, [currentDays, saving, status]);
 
-  const handleChange = async (newDays) => {
-    if (newDays < 3 || newDays > 7 || newDays === days) return;
+  const hasChanges = days !== currentDays;
 
-    setDays(newDays);
+  const handleConfirm = async () => {
+    if (!hasChanges) return;
+
     setSaving(true);
     setError(null);
     setStatus("Updating training days...");
 
     try {
-      // Step 1: Update training days + quiz workouts (fast)
       const res = await fetch("/api/user/training-days", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trainingDays: newDays }),
+        body: JSON.stringify({ trainingDays: days }),
       });
 
       if (!res.ok) {
@@ -39,7 +39,6 @@ export default function TrainingDaySelector({ currentDays }) {
 
       const data = await res.json();
 
-      // Step 2: If race plan active, regenerate current week only
       if (data.racePlanRegenerating) {
         setStatus("Regenerating this week's race workouts...");
         setSaving(false);
@@ -85,7 +84,7 @@ export default function TrainingDaySelector({ currentDays }) {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => handleChange(days - 1)}
+            onClick={() => days > 3 && setDays(days - 1)}
             disabled={days <= 3 || busy}
             className="w-8 h-8 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
           >
@@ -99,12 +98,20 @@ export default function TrainingDaySelector({ currentDays }) {
             )}
           </span>
           <button
-            onClick={() => handleChange(days + 1)}
+            onClick={() => days < 7 && setDays(days + 1)}
             disabled={days >= 7 || busy}
             className="w-8 h-8 rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
           >
             +
           </button>
+          {hasChanges && !busy && (
+            <button
+              onClick={handleConfirm}
+              className="ml-2 px-4 py-1.5 rounded-lg bg-orange-500 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
+            >
+              Save
+            </button>
+          )}
         </div>
       </div>
     </div>
