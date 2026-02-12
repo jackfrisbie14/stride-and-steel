@@ -604,45 +604,78 @@ function allocateDayTypes(trainingDays, ratios) {
 
 function buildSchedule(liftCount, runCount, recoveryCount, experience, liftingSplit) {
   const workouts = [];
-
-  // Select lift templates: use split rotation or default upper/lower/full body
   const liftTypes = (liftingSplit && splitRotations[liftingSplit]) || ["upperBody", "lowerBody", "fullBody"];
+  const totalDays = liftCount + runCount + recoveryCount;
+
+  // ── Ensure all split categories are represented ──
+  // If the split has more categories than allocated lift days, take days from
+  // runs (then recovery) and merge an easy run into those lift workouts instead.
+  let adjLiftCount = liftCount;
+  let adjRunCount = runCount;
+  let adjRecoveryCount = recoveryCount;
+
+  if (adjLiftCount < liftTypes.length) {
+    let needed = liftTypes.length - adjLiftCount;
+    // Take from dedicated run days first
+    const fromRuns = Math.min(needed, adjRunCount);
+    adjRunCount -= fromRuns;
+    needed -= fromRuns;
+    // Then from recovery if still short
+    const fromRecovery = Math.min(needed, adjRecoveryCount);
+    adjRecoveryCount -= fromRecovery;
+    adjLiftCount = totalDays - adjRunCount - adjRecoveryCount;
+  }
+
+  const absorbedRuns = runCount - adjRunCount;
+
+  // ── Build lift workouts covering all split categories ──
   const liftWorkouts = [];
-  for (let i = 0; i < liftCount; i++) {
+  for (let i = 0; i < adjLiftCount; i++) {
     const liftType = liftTypes[i % liftTypes.length];
     const template = liftTemplates[liftType][experience];
     liftWorkouts.push({ type: "Lift", ...template });
   }
 
-  // Select run templates: prioritize variety
-  const runTypes = ["easy", "tempo", "long", "intervals"];
+  // Merge easy runs into some lift workouts for absorbed run slots
+  if (absorbedRuns > 0) {
+    const easyRun = runTemplates.easy[experience];
+    for (let i = 0; i < absorbedRuns && i < liftWorkouts.length; i++) {
+      liftWorkouts[i].title += ` + ${easyRun.title}`;
+      liftWorkouts[i].exercises = [...liftWorkouts[i].exercises, ...easyRun.exercises];
+    }
+  }
+
+  // ── Build dedicated run workouts ──
+  // If easy runs were absorbed into lift days, prioritize tempo/long/intervals
+  const runOrder = absorbedRuns > 0
+    ? ["tempo", "long", "intervals", "easy"]
+    : ["easy", "tempo", "long", "intervals"];
   const runWorkouts = [];
-  for (let i = 0; i < runCount; i++) {
-    const runType = runTypes[i % runTypes.length];
+  for (let i = 0; i < adjRunCount; i++) {
+    const runType = runOrder[i % runOrder.length];
     const template = runTemplates[runType][experience];
     runWorkouts.push({ type: "Run", ...template });
   }
 
-  // Recovery workouts
+  // ── Recovery workouts ──
   const recoveryWorkouts = [];
-  for (let i = 0; i < recoveryCount; i++) {
+  for (let i = 0; i < adjRecoveryCount; i++) {
     recoveryWorkouts.push({ type: "Recovery", ...recoveryTemplate });
   }
 
-  // Arrange: alternate lift/run, avoid back-to-back same-muscle lifts
+  // ── Arrange schedule ──
   // Place long run on Saturday (or last run day), recovery on Sunday (or last day)
-  const totalDays = liftCount + runCount + recoveryCount;
   const schedule = new Array(totalDays);
 
   // Place recovery last
-  for (let i = 0; i < recoveryCount; i++) {
+  for (let i = 0; i < adjRecoveryCount; i++) {
     schedule[totalDays - 1 - i] = recoveryWorkouts[i];
   }
 
   // Place long run on the day before recovery (typically Saturday)
   const longRunIndex = runWorkouts.findIndex((w) => w.title === "Long Run");
   if (longRunIndex >= 0) {
-    const saturdaySlot = totalDays - 1 - recoveryCount;
+    const saturdaySlot = totalDays - 1 - adjRecoveryCount;
     schedule[saturdaySlot] = runWorkouts[longRunIndex];
     runWorkouts.splice(longRunIndex, 1);
   }
@@ -722,13 +755,14 @@ ${exerciseList ? "- Incorporate the athlete's favorite exercises into the approp
 REQUIREMENTS:
 1. Generate EXACTLY ${trainingDays} workouts for one week
 2. Workout types: "Run", "Lift", "Recovery"
-3. Allocate days roughly matching the archetype ratios (at least 1 lift, 1 run, 1 recovery)
-4. Lift exercises format: { "name": "...", "sets": 3, "reps": "8-10", "rest": "90 sec" }
-5. Run exercises format: { "name": "...", "duration": "...", "pace": "...", "notes": "..." }
-6. Recovery exercises format: { "name": "...", "duration": "...", "notes": "..." }
-7. Days: Monday through Sunday, dayNumber 1-${trainingDays}
-8. 4-7 exercises per workout
-9. Alternate lift and run days. Place long run on Saturday if possible, recovery on Sunday if possible.
+3. EVERY category of the lifting split MUST appear at least once (e.g. Arnold = Chest+Back, Shoulders+Arms, AND Legs — all three required)
+4. Lifting and running CAN share a day. If the split needs more lift days than available, combine a lift session with a short easy run on the same day (type stays "Lift", title like "Leg Day + Easy Run", exercises include both lift and run exercises)
+5. Lift exercises format: { "name": "...", "sets": 3, "reps": "8-10", "rest": "90 sec" }
+6. Run exercises format: { "name": "...", "duration": "...", "pace": "...", "notes": "..." }
+7. Recovery exercises format: { "name": "...", "duration": "...", "notes": "..." }
+8. Days: Monday through Sunday, dayNumber 1-${trainingDays}
+9. 4-8 exercises per workout (combo days can have more)
+10. Place long run on Saturday if possible, recovery on Sunday if possible.
 
 Respond with ONLY valid JSON (no markdown):
 {
