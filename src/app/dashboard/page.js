@@ -11,9 +11,6 @@ import RaceGoal from "@/components/RaceGoal";
 import RefundRequest from "@/components/RefundRequest";
 import CancelMembership from "@/components/CancelMembership";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
-import TrainingDaySelector from "@/components/TrainingDaySelector";
-import WorkoutPreferences from "@/components/WorkoutPreferences";
-import IntensitySelector from "@/components/IntensitySelector";
 import CustomizationPanel from "@/components/CustomizationPanel";
 import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
@@ -371,19 +368,13 @@ export default async function Dashboard() {
 
         {/* Customization Settings - For subscribed users */}
         {isSubscribed && (
-          <CustomizationPanel>
-            <WorkoutPreferences
-              currentSplit={user?.liftingSplit}
-              currentExercises={user?.customExercises}
-              racePlanActive={user?.racePlanActive}
-            >
-              <TrainingDaySelector currentDays={user?.trainingDays || 5} />
-            </WorkoutPreferences>
-            <IntensitySelector
-              currentLevel={effectiveExperience}
-              racePlanActive={user?.racePlanActive}
-            />
-          </CustomizationPanel>
+          <CustomizationPanel
+            initialDays={user?.trainingDays || 5}
+            initialSplit={user?.liftingSplit}
+            initialExercises={user?.customExercises}
+            initialExperience={effectiveExperience}
+            racePlanActive={user?.racePlanActive}
+          />
         )}
 
         {/* Account Settings - Discreet */}
