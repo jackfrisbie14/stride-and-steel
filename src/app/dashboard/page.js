@@ -333,19 +333,6 @@ export default async function Dashboard() {
           <p className="text-sm text-zinc-400 mt-2">{archetypeDescription}</p>
         </div>
 
-        {/* Subscription Status */}
-        {isSubscribed && (
-          <div className="mb-8 rounded-xl border border-green-500/30 bg-green-500/10 p-4 flex items-center gap-3">
-            <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-green-400">
-              Pro subscription active until{" "}
-              {new Date(user.stripeCurrentPeriodEnd).toLocaleDateString()}
-            </span>
-          </div>
-        )}
-
         {/* Race Goal - For subscribed users */}
         <div data-tour="race-goal">
           {isSubscribed && <RaceGoal initialRaceGoal={raceGoal} racePlanActive={user?.racePlanActive} racePlanInfo={racePlanInfo} goalTime={user?.raceGoalTime} />}
@@ -409,6 +396,15 @@ export default async function Dashboard() {
                 Account settings
               </summary>
               <div className="mt-4 space-y-3">
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 flex items-center gap-3">
+                  <svg className="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm text-green-400">
+                    Pro subscription active until{" "}
+                    {new Date(user.stripeCurrentPeriodEnd).toLocaleDateString()}
+                  </span>
+                </div>
                 <CancelMembership />
                 <RefundRequest />
               </div>
