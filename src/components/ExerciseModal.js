@@ -2,9 +2,30 @@
 
 import { useEffect, useState } from "react";
 
+// Keywords that indicate a cardio/running/recovery exercise — ExerciseDB
+// is a strength database and returns misleading GIFs for these.
+const CARDIO_KEYWORDS = [
+  "run", "jog", "sprint", "stride", "fartlek", "tempo run", "long run",
+  "easy run", "interval run", "hill repeat", "marathon", "half marathon",
+  "5k", "10k", "pace", "warm up run", "cool down run",
+  "swim", "bike", "cycle", "rowing",
+  "walk", "hike",
+  "stretch", "yoga", "foam roll", "mobility", "cool down", "warm up",
+  "rest day", "recovery",
+];
+
+function isCardioExercise(name, localData) {
+  if (localData?.category === "Cardio" || localData?.category === "Recovery") {
+    return true;
+  }
+  const lower = name.toLowerCase();
+  return CARDIO_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
 export default function ExerciseModal({ exercise, exerciseName, onClose }) {
+  const skipGifLookup = isCardioExercise(exerciseName, exercise);
   const [gifData, setGifData] = useState(null);
-  const [gifLoading, setGifLoading] = useState(true);
+  const [gifLoading, setGifLoading] = useState(!skipGifLookup);
 
   // Close on escape key
   useEffect(() => {
@@ -23,8 +44,10 @@ export default function ExerciseModal({ exercise, exerciseName, onClose }) {
     };
   }, []);
 
-  // Fetch GIF from ExerciseDB
+  // Fetch GIF from ExerciseDB (skip for cardio/running/recovery exercises)
   useEffect(() => {
+    if (skipGifLookup) return;
+
     const fetchGif = async () => {
       setGifLoading(true);
       try {
@@ -43,7 +66,7 @@ export default function ExerciseModal({ exercise, exerciseName, onClose }) {
     if (exerciseName) {
       fetchGif();
     }
-  }, [exerciseName]);
+  }, [exerciseName, skipGifLookup]);
 
   if (!exercise) {
     return (
