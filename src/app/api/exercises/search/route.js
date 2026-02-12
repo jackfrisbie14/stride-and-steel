@@ -21,7 +21,7 @@ export async function GET(request) {
     }
 
     const data = await res.json();
-    const exercises = (data.data?.exercises || []).map((ex) => ({
+    const exercises = (data.data || []).map((ex) => ({
       id: ex.exerciseId,
       name: ex.name,
       gifUrl: ex.gifUrl,
