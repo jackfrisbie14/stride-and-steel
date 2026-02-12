@@ -16,6 +16,7 @@ import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/ar
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
 const ADMIN_EMAIL = "jackfrisbie14@gmail.com";
+const FREE_ACCESS_EMAILS = [ADMIN_EMAIL, "dlmanning1919@gmail.com"];
 
 // Archetype descriptions keyed by label
 const archetypeDescriptions = {
@@ -56,8 +57,9 @@ export default async function Dashboard() {
   } : null;
 
   const isSubscribed =
-    user?.stripeCurrentPeriodEnd &&
-    new Date(user.stripeCurrentPeriodEnd) > new Date();
+    FREE_ACCESS_EMAILS.includes(session.user.email) ||
+    (user?.stripeCurrentPeriodEnd &&
+    new Date(user.stripeCurrentPeriodEnd) > new Date());
 
   // Get race plan info if active
   let racePlanInfo = null;
