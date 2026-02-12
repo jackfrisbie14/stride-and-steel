@@ -5,12 +5,17 @@ import { useEffect, useState } from "react";
 // Keywords that indicate a cardio/running/recovery exercise — ExerciseDB
 // is a strength database and returns misleading GIFs for these.
 const CARDIO_KEYWORDS = [
+  // Running
   "run", "jog", "sprint", "stride", "fartlek", "tempo", "interval",
-  "hill repeat", "marathon", "half marathon", "5k", "10k", "pace",
+  "repeat", "marathon", "half marathon", "5k", "10k", "pace",
+  "threshold", "mile repeat", "400m", "800m",
+  // Warm-up / cool-down (all variants)
   "warmup", "warm-up", "warm up", "cooldown", "cool-down", "cool down",
-  "swim", "bike", "cycle", "rowing",
+  // Other cardio
+  "swim", "bike", "cycle", "rowing", "spin", "elliptical", "brick",
   "walk", "hike",
-  "stretch", "yoga", "foam roll", "mobility",
+  // Recovery / mobility
+  "stretch", "yoga", "foam roll", "mobility", "breathing", "meditation",
   "rest day", "recovery",
 ];
 
