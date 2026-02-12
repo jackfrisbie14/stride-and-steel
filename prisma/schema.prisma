@@ -80,6 +80,9 @@ model User {
   enjoymentPromptDismissed Boolean @default(false) // User has responded/dismissed the prompt
   firstPaidAt              DateTime?         // When first real (non-trial) subscription payment was made
 
+  // Onboarding
+  tourCompleted            Boolean @default(false) // User has completed the onboarding tour
+
   // Race goal
   raceName     String?
   raceDate     DateTime?

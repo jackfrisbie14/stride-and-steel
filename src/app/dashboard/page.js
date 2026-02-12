@@ -54,6 +54,7 @@ export default async function Dashboard() {
       referralRewardApplied: true,
       enjoymentPromptDismissed: true,
       firstPaidAt: true,
+      tourCompleted: true,
     },
   });
 
@@ -382,13 +383,15 @@ export default async function Dashboard() {
 
         {/* Customization Settings - For subscribed users */}
         {isSubscribed && (
-          <CustomizationPanel
-            initialDays={user?.trainingDays || 5}
-            initialSplit={user?.liftingSplit}
-            initialExercises={user?.customExercises}
-            initialExperience={effectiveExperience}
-            racePlanActive={user?.racePlanActive}
-          />
+          <div data-tour="customization">
+            <CustomizationPanel
+              initialDays={user?.trainingDays || 5}
+              initialSplit={user?.liftingSplit}
+              initialExercises={user?.customExercises}
+              initialExperience={effectiveExperience}
+              racePlanActive={user?.racePlanActive}
+            />
+          </div>
         )}
 
         {/* Account Settings - Discreet */}
@@ -432,7 +435,7 @@ export default async function Dashboard() {
       </div>
 
       {/* Onboarding Tutorial for new subscribers */}
-      {isSubscribed && <OnboardingTutorial />}
+      {isSubscribed && !user?.tourCompleted && <OnboardingTutorial show={true} />}
     </main>
   );
 }

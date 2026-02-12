@@ -4,69 +4,74 @@ import { useState, useEffect, useRef } from "react";
 
 const TUTORIAL_STEPS = [
   {
-    target: null, // Full screen welcome
-    title: "Welcome to Stride & Steel! 🎉",
+    target: null,
+    title: "Welcome to Stride & Steel!",
     content: "Let's take a quick tour of your personalized hybrid training dashboard.",
     position: "center",
   },
   {
     target: "[data-tour='workouts']",
-    title: "Your Weekly Workouts 📋",
+    title: "Your Weekly Workouts",
     content: "Each card is a day's workout. Tap any card to expand it and see the full exercise list with sets, reps, and instructions.",
     tip: "Green = running, Orange = lifting, Purple = recovery",
     position: "top",
   },
   {
     target: "[data-tour='workout-card']",
-    title: "Expand for Details 👆",
+    title: "Expand for Details",
     content: "Click a workout to see every exercise. For lifting days, you'll see sets, reps, rest times, and form cues.",
     position: "top",
   },
   {
     target: "[data-tour='workout-card']",
-    title: "Track Your Weights 🏋️",
+    title: "Track Your Weights",
     content: "Inside each lifting workout, you can log the weight and reps you completed for every set. Your history helps us adjust future workouts.",
     position: "top",
   },
   {
     target: "[data-tour='workout-card']",
-    title: "Pre & Post Check-ins 📊",
+    title: "Pre & Post Check-ins",
     content: "Before each workout, rate your energy, soreness, and motivation. After, rate the difficulty. This feedback drives your adaptive training!",
     position: "top",
   },
   {
     target: "[data-tour='stats']",
-    title: "Adaptive Training 🔄",
-    content: "Your training isn't static—it evolves weekly based on your check-in feedback. Feeling crushed? We dial it back. Feeling strong? We push harder.",
+    title: "Adaptive Training",
+    content: "Your training isn't static — it evolves weekly based on your check-in feedback. Feeling crushed? We dial it back. Feeling strong? We push harder.",
     position: "bottom",
   },
   {
     target: "[data-tour='race-goal']",
-    title: "Set a Race Goal 🏁",
+    title: "Set a Race Goal",
     content: "Training for an event? Add your race date and distance here. We'll periodize your training to help you peak on race day with automatic tapering.",
     position: "bottom",
   },
   {
+    target: "[data-tour='customization']",
+    title: "Customize Your Training",
+    content: "Adjust your training days, lifting split, experience level, and even swap in your favorite exercises. Your plan updates automatically.",
+    position: "top",
+  },
+  {
     target: null,
-    title: "You're All Set! 🚀",
-    content: "That's everything! Your first workout is waiting—tap a card to get started. Let's build something great together.",
+    title: "You're All Set!",
+    content: "That's everything! Your first workout is waiting — tap a card to get started. After your first full month, we'll check in and you can earn discounts by referring friends.",
     position: "center",
   },
 ];
 
-export default function OnboardingTutorial() {
+export default function OnboardingTutorial({ show }) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
   const tooltipRef = useRef(null);
 
   useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem("ss_tutorial_complete");
-    if (!hasSeenTutorial) {
+    if (show) {
       const timer = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [show]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -112,6 +117,15 @@ export default function OnboardingTutorial() {
     return () => window.removeEventListener("resize", handleResize);
   }, [currentStep, isOpen]);
 
+  const handleComplete = async () => {
+    setIsOpen(false);
+    try {
+      await fetch("/api/user/tour-complete", { method: "POST" });
+    } catch (e) {
+      console.error("Failed to save tour completion:", e);
+    }
+  };
+
   const handleNext = () => {
     if (currentStep < TUTORIAL_STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -124,11 +138,6 @@ export default function OnboardingTutorial() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
-  };
-
-  const handleComplete = () => {
-    localStorage.setItem("ss_tutorial_complete", "true");
-    setIsOpen(false);
   };
 
   const handleSkip = () => {
@@ -156,21 +165,17 @@ export default function OnboardingTutorial() {
     const padding = 16;
     const tooltipWidth = 320;
     const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
 
     let top, left;
-    const arrowPosition = { top: false, bottom: false, left: false, right: false };
 
     if (step.position === "top") {
       // Position above the element
       top = targetRect.top - padding - 12;
       left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
-      arrowPosition.bottom = true;
     } else if (step.position === "bottom") {
       // Position below the element
       top = targetRect.bottom + padding + 12;
       left = targetRect.left + targetRect.width / 2 - tooltipWidth / 2;
-      arrowPosition.top = true;
     }
 
     // Keep tooltip within viewport
@@ -182,8 +187,6 @@ export default function OnboardingTutorial() {
     // If tooltip would go above viewport, put it below instead
     if (top < padding && step.position === "top") {
       top = targetRect.bottom + padding + 12;
-      arrowPosition.bottom = false;
-      arrowPosition.top = true;
     }
 
     return {
@@ -285,7 +288,7 @@ export default function OnboardingTutorial() {
           {step.tip && (
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg px-3 py-2 mb-4">
               <p className="text-xs text-orange-300">
-                <span className="font-semibold">💡</span> {step.tip}
+                <span className="font-semibold">Tip:</span> {step.tip}
               </p>
             </div>
           )}
