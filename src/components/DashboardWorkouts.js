@@ -62,7 +62,17 @@ export default function DashboardWorkouts({ workouts, isSubscribed }) {
   return (
     <div data-tour="workouts" className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">This Week's Workouts</h3>
+        <div>
+          <h3 className="text-lg font-semibold">This Week's Workouts</h3>
+          {isSubscribed && (
+            <button
+              onClick={() => document.getElementById("customization-panel")?.scrollIntoView({ behavior: "smooth" })}
+              className="text-xs text-zinc-500 hover:text-orange-400 transition-colors mt-0.5"
+            >
+              Want to adjust? Customize your plan below
+            </button>
+          )}
+        </div>
         {isSubscribed && !loading && (
           <span className="text-sm text-zinc-400">
             {completedCount}/{workouts.length} completed

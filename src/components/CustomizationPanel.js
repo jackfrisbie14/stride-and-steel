@@ -6,7 +6,7 @@ export default function CustomizationPanel({ children }) {
   const [visible, setVisible] = useState(true);
 
   return (
-    <div className="mt-12">
+    <div id="customization-panel" className="mt-12">
       <button
         onClick={() => setVisible(!visible)}
         className="w-full flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-600 transition-colors mb-6"
