@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { determineArchetype, parseExperience } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
-const VALID_SPLITS = ["ppl", "arnold", "upper_lower", "bro_split", "full_body"];
+const VALID_LEVELS = ["beginner", "intermediate", "advanced"];
 
 export async function POST(request) {
   try {
@@ -15,36 +15,13 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { liftingSplit, customExercises } = body;
+    const { experience } = body;
 
-    // Validate liftingSplit
-    if (liftingSplit !== null && liftingSplit !== undefined && !VALID_SPLITS.includes(liftingSplit)) {
+    if (!experience || !VALID_LEVELS.includes(experience)) {
       return NextResponse.json(
-        { error: "Invalid lifting split" },
+        { error: "Experience must be one of: beginner, intermediate, advanced" },
         { status: 400 }
       );
-    }
-
-    // Validate customExercises
-    if (customExercises !== null && customExercises !== undefined) {
-      if (!Array.isArray(customExercises)) {
-        return NextResponse.json(
-          { error: "Custom exercises must be an array" },
-          { status: 400 }
-        );
-      }
-      if (customExercises.length > 10) {
-        return NextResponse.json(
-          { error: "Maximum 10 custom exercises allowed" },
-          { status: 400 }
-        );
-      }
-      if (customExercises.some(e => typeof e !== "string" || e.trim().length === 0)) {
-        return NextResponse.json(
-          { error: "Each exercise must be a non-empty string" },
-          { status: 400 }
-        );
-      }
     }
 
     const user = await prisma.user.findUnique({
@@ -55,17 +32,10 @@ export async function POST(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Save preferences
-    const cleanedExercises = customExercises
-      ? customExercises.map(e => e.trim()).filter(Boolean)
-      : null;
-
+    // Save experience override
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        liftingSplit: liftingSplit || null,
-        customExercises: cleanedExercises && cleanedExercises.length > 0 ? cleanedExercises : null,
-      },
+      data: { experience },
     });
 
     // Parse quiz answers for archetype
@@ -73,15 +43,14 @@ export async function POST(request) {
       ? user.quizAnswers
       : Object.values(user.quizAnswers || {});
     const archetype = determineArchetype(answersArray);
-    const experience = user.experience || parseExperience(answersArray[3]);
 
-    // Generate new workouts with preferences
+    // Regenerate quiz workouts with new experience level
     const workouts = await generateQuizWorkouts({
       archetype,
       trainingDays: user.trainingDays || 5,
       experience,
-      liftingSplit: liftingSplit || null,
-      customExercises: cleanedExercises && cleanedExercises.length > 0 ? cleanedExercises : null,
+      liftingSplit: user.liftingSplit || null,
+      customExercises: user.customExercises || null,
     });
 
     // Delete existing quiz workouts
@@ -90,7 +59,7 @@ export async function POST(request) {
     });
 
     // Store new workouts
-    if (workouts && workouts.length > 0) {
+    if (workouts.length > 0) {
       await prisma.workout.createMany({
         data: workouts.map((w) => ({
           userId: user.id,
@@ -110,9 +79,9 @@ export async function POST(request) {
       racePlanRegenerating: user.racePlanActive,
     });
   } catch (error) {
-    console.error("Update workout preferences error:", error);
+    console.error("Update intensity error:", error);
     return NextResponse.json(
-      { error: "Failed to update workout preferences" },
+      { error: "Failed to update intensity" },
       { status: 500 }
     );
   }

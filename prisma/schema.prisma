@@ -69,6 +69,8 @@ model User {
   racePlanActive  Boolean  @default(false)
   liftingSplit    String?  // "ppl", "arnold", "upper_lower", "bro_split", "full_body"
   customExercises Json?    // ["Deadlift", "Barbell Hip Thrust", ...]
+  experience      String?  // "beginner", "intermediate", "advanced" — overrides quiz-derived value
+  raceGoalTime    String?  // e.g. "3:45:00", "1:30:00"
 
   // Race goal
   raceName     String?

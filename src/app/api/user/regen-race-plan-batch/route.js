@@ -42,7 +42,7 @@ export async function POST(request) {
       ? user.quizAnswers
       : Object.values(user.quizAnswers || {});
     const archetype = determineArchetype(answersArray);
-    const experience = parseExperience(answersArray[3]);
+    const experience = user.experience || parseExperience(answersArray[3]);
     const trainingDays = user.trainingDays || 5;
     const phases = calculatePhases(activePlan.totalWeeks);
 
@@ -60,6 +60,7 @@ export async function POST(request) {
       endWeek,
       liftingSplit: user.liftingSplit,
       customExercises: user.customExercises,
+      raceGoalTime: user.raceGoalTime,
     });
 
     const client = await getAnthropicClient();

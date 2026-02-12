@@ -72,7 +72,7 @@ const splitLabels = {
   full_body: "Full Body",
 };
 
-export function buildBatchPrompt({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, totalWeeks, phases, startWeek, endWeek, liftingSplit, customExercises }) {
+export function buildBatchPrompt({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, totalWeeks, phases, startWeek, endWeek, liftingSplit, customExercises, raceGoalTime }) {
   const raceGuidance = getRaceGuidance(raceDistance);
   const isTriathlon = raceDistance.toLowerCase().includes("triathlon") || raceDistance.toLowerCase().includes("ironman") || raceDistance.toLowerCase().includes("70.3");
 
@@ -102,6 +102,11 @@ ARCHETYPE STRENGTH PREFERENCE:
 ${liftingSplit || (customExercises && customExercises.length > 0) ? `
 LIFTING PREFERENCES:${liftingSplit ? `\n- Preferred lifting split: ${splitLabels[liftingSplit] || liftingSplit}` : ""}${customExercises && customExercises.length > 0 ? `\n- Favorite exercises to include: ${customExercises.join(", ")}` : ""}
 - Structure lifting days using this split pattern. Incorporate the athlete's favorite exercises where appropriate.` : ""}
+${raceGoalTime ? `
+TARGET FINISH TIME: ${raceGoalTime}
+- Design running workouts with pace targets derived from this goal time.
+- Include specific pace zones (easy, tempo, threshold, interval) calibrated to achieve this finish time.
+- For long runs, specify target pace ranges. For intervals, specify target split times.` : ""}
 
 PHASES:
 ${phases.map(p => `- ${p.name.toUpperCase()}: Weeks ${p.startWeek}-${p.endWeek}`).join("\n")}
@@ -145,7 +150,7 @@ Respond with ONLY valid JSON (no markdown):
  * @param {Object} [params.archetypeRatios] - { lift, run, recovery } percentages
  * @returns {Promise<{ totalWeeks, phases, weeks }>}
  */
-export async function generateRacePlan({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, liftingSplit, customExercises }) {
+export async function generateRacePlan({ raceName, raceDate, raceDistance, trainingDays, experience, archetype, archetypeRatios, liftingSplit, customExercises, raceGoalTime }) {
   // Calculate weeks until race (cap 4-24)
   const now = new Date();
   const raceDay = new Date(raceDate);
@@ -176,6 +181,7 @@ export async function generateRacePlan({ raceName, raceDate, raceDistance, train
       endWeek,
       liftingSplit,
       customExercises,
+      raceGoalTime,
     });
 
     // Try up to 2 times per batch

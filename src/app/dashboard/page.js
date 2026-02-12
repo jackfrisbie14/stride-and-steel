@@ -13,6 +13,7 @@ import CancelMembership from "@/components/CancelMembership";
 import OnboardingTutorial from "@/components/OnboardingTutorial";
 import TrainingDaySelector from "@/components/TrainingDaySelector";
 import WorkoutPreferences from "@/components/WorkoutPreferences";
+import IntensitySelector from "@/components/IntensitySelector";
 import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
@@ -47,6 +48,8 @@ export default async function Dashboard() {
       racePlanActive: true,
       liftingSplit: true,
       customExercises: true,
+      experience: true,
+      raceGoalTime: true,
       quizAnswers: true,
     },
   });
@@ -110,7 +113,7 @@ export default async function Dashboard() {
     const answersArray = Array.isArray(user.quizAnswers) ? user.quizAnswers : Object.values(user.quizAnswers || {});
     const archetype = determineArchetype(answersArray);
     const trainingDays = user.trainingDays || parseTrainingDays(answersArray[2]);
-    const experience = parseExperience(answersArray[3]);
+    const experience = user.experience || parseExperience(answersArray[3]);
 
     const generated = await generateQuizWorkouts({
       archetype,
@@ -162,6 +165,12 @@ export default async function Dashboard() {
   const archetypeLabel = user?.archetype || "The Balanced Athlete";
   const archetypeDescription = archetypeDescriptions[archetypeLabel] ||
     "You thrive with equal focus on strength and endurance, building a well-rounded athletic foundation.";
+
+  // Compute effective experience level (stored override or quiz-derived)
+  const answersForExperience = user?.quizAnswers
+    ? (Array.isArray(user.quizAnswers) ? user.quizAnswers : Object.values(user.quizAnswers || {}))
+    : [];
+  const effectiveExperience = user?.experience || parseExperience(answersForExperience[3]);
 
   return (
     <main className="min-h-screen pb-20">
@@ -338,7 +347,7 @@ export default async function Dashboard() {
 
         {/* Race Goal - For subscribed users */}
         <div data-tour="race-goal">
-          {isSubscribed && <RaceGoal initialRaceGoal={raceGoal} racePlanActive={user?.racePlanActive} racePlanInfo={racePlanInfo} />}
+          {isSubscribed && <RaceGoal initialRaceGoal={raceGoal} racePlanActive={user?.racePlanActive} racePlanInfo={racePlanInfo} goalTime={user?.raceGoalTime} />}
         </div>
 
         {/* Stats Overview */}
@@ -382,6 +391,14 @@ export default async function Dashboard() {
           <WorkoutPreferences
             currentSplit={user?.liftingSplit}
             currentExercises={user?.customExercises}
+            racePlanActive={user?.racePlanActive}
+          />
+        )}
+
+        {/* Intensity Selector - For subscribed users */}
+        {isSubscribed && (
+          <IntensitySelector
+            currentLevel={effectiveExperience}
             racePlanActive={user?.racePlanActive}
           />
         )}

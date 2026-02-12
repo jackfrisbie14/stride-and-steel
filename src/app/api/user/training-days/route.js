@@ -36,7 +36,7 @@ export async function POST(request) {
       ? user.quizAnswers
       : Object.values(user.quizAnswers || {});
     const archetype = determineArchetype(answersArray);
-    const experience = parseExperience(answersArray[3]);
+    const experience = user.experience || parseExperience(answersArray[3]);
 
     // Generate new workouts with updated day count (preserving lifting preferences)
     const workouts = await generateQuizWorkouts({

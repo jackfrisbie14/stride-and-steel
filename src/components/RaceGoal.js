@@ -71,7 +71,7 @@ function RaceCountdown({ raceDate, raceName }) {
   );
 }
 
-export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo }) {
+export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo, goalTime }) {
   const [raceGoal, setRaceGoal] = useState(initialRaceGoal);
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,6 +81,7 @@ export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo
     raceName: "",
     raceDate: "",
     raceDistance: "",
+    raceGoalTime: "",
   });
 
   // Load minimized state from localStorage
@@ -106,9 +107,10 @@ export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo
         raceName: raceGoal.raceName || "",
         raceDate: raceGoal.raceDate ? new Date(raceGoal.raceDate).toISOString().split("T")[0] : "",
         raceDistance: raceGoal.raceDistance || "",
+        raceGoalTime: goalTime || "",
       });
     }
-  }, [raceGoal]);
+  }, [raceGoal, goalTime]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -147,7 +149,7 @@ export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo
       if (!res.ok) throw new Error("Failed to delete");
 
       setRaceGoal(null);
-      setFormData({ raceName: "", raceDate: "", raceDistance: "" });
+      setFormData({ raceName: "", raceDate: "", raceDistance: "", raceGoalTime: "" });
       setIsEditing(false);
 
       // Reload to show quiz workouts
@@ -285,6 +287,20 @@ export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
+              Goal Time <span className="text-zinc-500 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.raceGoalTime}
+              onChange={(e) => setFormData({ ...formData, raceGoalTime: e.target.value })}
+              placeholder="e.g. 3:45:00"
+              className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500"
+            />
+            <p className="text-xs text-zinc-500 mt-1">Set a target finish time for pace-specific workouts</p>
+          </div>
+
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -339,10 +355,15 @@ export default function RaceGoal({ initialRaceGoal, racePlanActive, racePlanInfo
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center gap-4 mb-4 flex-wrap">
         <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
           {raceGoal.raceDistance}
         </span>
+        {goalTime && (
+          <span className="px-3 py-1 rounded-full text-sm font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
+            Goal: {goalTime}
+          </span>
+        )}
         <span className="text-sm text-zinc-400">
           {new Date(raceGoal.raceDate).toLocaleDateString("en-US", {
             weekday: "long",

@@ -66,7 +66,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { raceName, raceDate, raceDistance } = body;
+    const { raceName, raceDate, raceDistance, raceGoalTime } = body;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
@@ -83,6 +83,7 @@ export async function POST(request) {
         raceName: raceName || null,
         raceDate: raceDate ? new Date(raceDate) : null,
         raceDistance: raceDistance || null,
+        raceGoalTime: raceGoalTime || null,
         racePlanActive: true,
       },
     });
@@ -98,7 +99,7 @@ export async function POST(request) {
       ? user.quizAnswers
       : Object.values(user.quizAnswers || {});
     const archetype = determineArchetype(answersArray);
-    const experience = parseExperience(answersArray[3]);
+    const experience = user.experience || parseExperience(answersArray[3]);
 
     // Generate AI race plan
     const plan = await generateRacePlan({
@@ -109,6 +110,9 @@ export async function POST(request) {
       experience,
       archetype: archetype.label,
       archetypeRatios: archetype.ratios,
+      liftingSplit: user.liftingSplit || null,
+      customExercises: user.customExercises || null,
+      raceGoalTime: raceGoalTime || null,
     });
 
     // Create RacePlan record
@@ -193,6 +197,7 @@ export async function DELETE() {
         raceName: null,
         raceDate: null,
         raceDistance: null,
+        raceGoalTime: null,
         racePlanActive: false,
       },
     });
@@ -218,7 +223,7 @@ export async function DELETE() {
         ? user.quizAnswers
         : Object.values(user.quizAnswers || {});
       const archetype = determineArchetype(answersArray);
-      const experience = parseExperience(answersArray[3]);
+      const experience = user.experience || parseExperience(answersArray[3]);
 
       const workouts = generateQuizWorkouts({
         archetype,
