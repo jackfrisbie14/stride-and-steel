@@ -28,6 +28,11 @@ export default function TrainingDaySelector({ days, onChange, disabled }) {
           </button>
         </div>
       </div>
+      {days >= 7 && (
+        <p className="text-xs text-yellow-500 mt-3">
+          Training 7 days a week with no rest days increases injury risk. Consider keeping at least one recovery day.
+        </p>
+      )}
     </div>
   );
 }
