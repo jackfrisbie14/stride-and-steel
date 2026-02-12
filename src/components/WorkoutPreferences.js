@@ -87,35 +87,14 @@ export default function WorkoutPreferences({ currentSplit, currentExercises, rac
       const data = await res.json();
 
       if (data.racePlanRegenerating) {
-        setStatus("Setting up race plan...");
+        setStatus("Regenerating this week's race workouts...");
 
-        const setupRes = await fetch("/api/user/regen-race-plan", { method: "POST" });
-        if (!setupRes.ok) {
-          const text = await setupRes.text();
+        const regenRes = await fetch("/api/user/regen-current-week", { method: "POST" });
+        if (!regenRes.ok) {
+          const text = await regenRes.text();
           let msg;
           try { msg = JSON.parse(text).error; } catch { msg = text; }
-          throw new Error(msg || "Failed to set up race plan");
-        }
-
-        const setupData = await setupRes.json();
-        const { batches } = setupData;
-
-        for (let i = 0; i < batches.length; i++) {
-          const batch = batches[i];
-          setStatus(`Generating weeks ${batch.startWeek}-${batch.endWeek}... (${i + 1}/${batches.length})`);
-
-          const batchRes = await fetch("/api/user/regen-race-plan-batch", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ startWeek: batch.startWeek, endWeek: batch.endWeek }),
-          });
-
-          if (!batchRes.ok) {
-            const text = await batchRes.text();
-            let msg;
-            try { msg = JSON.parse(text).error; } catch { msg = text; }
-            throw new Error(msg || `Failed on weeks ${batch.startWeek}-${batch.endWeek}`);
-          }
+          throw new Error(msg || "Failed to regenerate race workouts");
         }
       }
 
