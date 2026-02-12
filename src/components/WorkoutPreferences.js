@@ -30,7 +30,7 @@ const SPLITS = [
   },
 ];
 
-export default function WorkoutPreferences({ currentSplit, currentExercises, racePlanActive }) {
+export default function WorkoutPreferences({ currentSplit, currentExercises, racePlanActive, children }) {
   const [split, setSplit] = useState(currentSplit || null);
   const [exercises, setExercises] = useState(currentExercises || []);
   const [inputValue, setInputValue] = useState("");
@@ -119,6 +119,8 @@ export default function WorkoutPreferences({ currentSplit, currentExercises, rac
           Choose a lifting split or add your favorite exercises to personalize your plan.
         </p>
       </div>
+
+      {children}
 
       {error && (
         <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/30 p-3">
