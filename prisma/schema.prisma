@@ -80,6 +80,9 @@ model User {
   enjoymentPromptDismissed Boolean @default(false) // User has responded/dismissed the prompt
   firstPaidAt              DateTime?         // When first real (non-trial) subscription payment was made
 
+  // Email preferences
+  unsubscribedFromEmail    Boolean @default(false)
+
   // Onboarding
   tourCompleted            Boolean @default(false) // User has completed the onboarding tour
 
@@ -94,6 +97,7 @@ model User {
   workouts      Workout[]
   trainingWeeks TrainingWeek[]
   racePlans     RacePlan[]
+  emailLogs     EmailLog[]
 }
 
 model Workout {
@@ -260,4 +264,16 @@ model RefundRequest {
 
   @@index([userId])
   @@index([status])
+}
+
+// Email drip campaign tracking
+model EmailLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailType String   // "drip_1hr", "drip_24hr", "drip_72hr"
+  sentAt    DateTime @default(now())
+
+  @@unique([userId, emailType])
+  @@index([userId])
 }

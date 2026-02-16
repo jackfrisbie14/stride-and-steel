@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resend } from "@/lib/resend";
-import { getWorkoutEmailHtml } from "@/lib/workouts";
 import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
@@ -72,20 +70,6 @@ export async function POST(request) {
           weekNumber: 1,
         })),
       });
-    }
-
-    // Send email with personalized workouts
-    if (resend) {
-      const { error: emailError } = await resend.emails.send({
-        from: "Stride & Steel <onboarding@resend.dev>",
-        to: email,
-        subject: "Your Custom Training Plan from Stride & Steel",
-        html: getWorkoutEmailHtml(workouts),
-      });
-
-      if (emailError) {
-        console.error("Email error:", emailError);
-      }
     }
 
     return NextResponse.json({
