@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import PricingSection from "@/components/PricingSection";
+import { archetypes } from "@/lib/archetypes";
 
 // Calculate BMI
 function calculateBMI(heightData, weightData, unit) {
@@ -85,7 +86,6 @@ export default function Results() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [metrics, setMetrics] = useState(null);
-  const [goal, setGoal] = useState(null);
   const [archetypeLabel, setArchetypeLabel] = useState(null);
 
   useEffect(() => {
@@ -119,7 +119,6 @@ export default function Results() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const heightWeightData = localStorage.getItem("quizHeightWeight");
-      const goalData = localStorage.getItem("quizGoal");
       const savedArchetype = localStorage.getItem("quizArchetype");
       if (savedArchetype) {
         setArchetypeLabel(savedArchetype);
@@ -141,10 +140,6 @@ export default function Results() {
         } catch (e) {
           console.error("Error parsing quiz data:", e);
         }
-      }
-
-      if (goalData) {
-        setGoal(goalData);
       }
 
     }
@@ -178,13 +173,14 @@ export default function Results() {
         <span className="text-orange-500">{archetypeLabel || "The Balanced Athlete"}</span>
       </h1>
 
-      {/* Goal Display */}
-      {goal && (
-        <div className="mt-4 rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-2">
-          <p className="text-sm text-zinc-400">Your 12-Week Goal</p>
-          <p className="text-orange-400 font-medium">{goal}</p>
-        </div>
-      )}
+      {/* Archetype Summary */}
+      {(() => {
+        const match = Object.values(archetypes).find(a => a.label === archetypeLabel);
+        const description = match?.description;
+        return description ? (
+          <p className="mt-4 max-w-md text-zinc-400">{description}</p>
+        ) : null;
+      })()}
 
       {/* Personalized Metrics */}
       {metrics && (
