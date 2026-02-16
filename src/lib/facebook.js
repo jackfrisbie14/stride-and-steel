@@ -39,6 +39,9 @@ export async function sendFBEvent(
         body: JSON.stringify({
           data: [eventData],
           access_token: FB_ACCESS_TOKEN,
+          ...(process.env.FB_TEST_EVENT_CODE && {
+            test_event_code: process.env.FB_TEST_EVENT_CODE,
+          }),
         }),
       }
     );
