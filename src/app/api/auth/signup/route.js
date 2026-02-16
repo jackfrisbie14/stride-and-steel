@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { sendFBEvent } from "@/lib/facebook";
 
 export async function POST(request) {
   try {
+    const userAgent = request.headers.get("user-agent") || undefined;
     const { name, email, password } = await request.json();
 
     if (!email || !password) {
@@ -36,6 +38,7 @@ export async function POST(request) {
             name: name || existingUser.name,
           },
         });
+        sendFBEvent("CompleteRegistration", { email, userAgent });
         return NextResponse.json({ success: true });
       }
 
@@ -55,6 +58,7 @@ export async function POST(request) {
       },
     });
 
+    sendFBEvent("CompleteRegistration", { email, userAgent });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Signup error:", error);

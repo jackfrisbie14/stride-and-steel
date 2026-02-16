@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { stripe, PRICE_ID, TRIAL_PRICE_ID } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { sendFBEvent } from "@/lib/facebook";
 
 export async function POST(request) {
   try {
@@ -141,6 +142,7 @@ export async function POST(request) {
       },
     });
 
+    sendFBEvent("InitiateCheckout", { email: session.user.email });
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
     console.error("Checkout error:", error);

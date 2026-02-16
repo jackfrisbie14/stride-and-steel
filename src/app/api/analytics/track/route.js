@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { sendFBEvent } from "@/lib/facebook";
 
 export async function POST(request) {
   try {
@@ -56,6 +57,10 @@ export async function POST(request) {
             metadata: metadata || null,
           },
         });
+
+        if (step === "landing") {
+          sendFBEvent("ViewContent", { userAgent });
+        }
       }
     }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { sendFBEvent } from "@/lib/facebook";
 
 // Helper function to find user by stripeCustomerId or customer metadata
 async function findUserByCustomer(customerId) {
@@ -111,6 +112,13 @@ export async function POST(request) {
           // Don't fail webhook for analytics
           console.error("Failed to track subscription funnel:", e);
         }
+
+        const amount = subscription.items.data[0].price.unit_amount;
+        sendFBEvent("Subscribe", {
+          email: user.email,
+          value: amount ? amount / 100 : undefined,
+          currency: subscription.currency?.toUpperCase() || "USD",
+        });
         break;
       }
 
