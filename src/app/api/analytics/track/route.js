@@ -59,7 +59,9 @@ export async function POST(request) {
         });
 
         if (step === "landing") {
-          sendFBEvent("ViewContent", { userAgent });
+          sendFBEvent("ViewContent", {
+            userAgent: userAgent || request.headers.get("user-agent") || undefined,
+          });
         }
       }
     }
