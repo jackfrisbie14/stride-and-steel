@@ -60,6 +60,68 @@ function FunnelChart({ funnelCounts }) {
   );
 }
 
+function generateSummary(stats) {
+  const parts = [];
+  const fc = stats.funnelCounts || {};
+
+  // Revenue & subscribers
+  if (stats.activeSubscriptions > 0) {
+    const arpu = stats.mrr / stats.activeSubscriptions;
+    parts.push(`You're at $${stats.mrr.toLocaleString()} MRR from ${stats.activeSubscriptions} active subscriber${stats.activeSubscriptions === 1 ? "" : "s"} ($${arpu.toFixed(2)}/user).`);
+  } else {
+    parts.push(`No active subscribers yet. ${stats.totalUsers} user${stats.totalUsers === 1 ? " has" : "s have"} signed up so far.`);
+  }
+
+  // Growth
+  if (stats.signupsLast7Days > 0) {
+    parts.push(`${stats.signupsLast7Days} new signup${stats.signupsLast7Days === 1 ? "" : "s"} in the last 7 days.`);
+  }
+
+  // Funnel analysis — find the biggest drop-off
+  const steps = ["landing", "quiz_start", "quiz_complete", "signup_page", "signup_complete", "checkout_page", "subscribed"];
+  let worstDrop = null;
+  let worstRate = 100;
+  for (let i = 1; i < steps.length; i++) {
+    const prev = fc[steps[i - 1]] || 0;
+    const curr = fc[steps[i]] || 0;
+    if (prev > 0) {
+      const rate = Math.round((curr / prev) * 100);
+      if (rate < worstRate) {
+        worstRate = rate;
+        worstDrop = { from: steps[i - 1], to: steps[i], rate, prev, curr };
+      }
+    }
+  }
+
+  if (fc.landing > 0 && fc.subscribed !== undefined) {
+    const overallRate = fc.landing > 0 ? ((fc.subscribed || 0) / fc.landing * 100).toFixed(1) : 0;
+    parts.push(`Overall funnel: ${overallRate}% of landing visitors convert to paid (${fc.landing} → ${fc.subscribed || 0}).`);
+  }
+
+  if (worstDrop && worstDrop.prev > 2) {
+    parts.push(`Biggest drop-off: ${FUNNEL_LABELS[worstDrop.from]} → ${FUNNEL_LABELS[worstDrop.to]} at ${worstDrop.rate}% (${worstDrop.prev} → ${worstDrop.curr}). This is where to focus.`);
+  }
+
+  // Engagement
+  const totalWorkouts = stats.totalWorkoutsCompleted + stats.totalWorkoutsSkipped;
+  if (totalWorkouts > 0) {
+    const completionRate = Math.round((stats.totalWorkoutsCompleted / totalWorkouts) * 100);
+    parts.push(`Workout completion rate: ${completionRate}% (${stats.totalWorkoutsCompleted} done, ${stats.totalWorkoutsSkipped} skipped).`);
+  }
+
+  // Cancellation
+  const cs = stats.cancellationStats;
+  if (cs && cs.total > 0) {
+    parts.push(`${cs.total} cancellation attempt${cs.total === 1 ? "" : "s"} — saved ${cs.saved} (${cs.saveRate}% save rate).`);
+    const topReason = Object.entries(cs.reasonCounts || {}).sort(([, a], [, b]) => b - a)[0];
+    if (topReason) {
+      parts.push(`Top cancel reason: "${CANCELLATION_REASON_LABELS[topReason[0]] || topReason[0]}".`);
+    }
+  }
+
+  return parts.join(" ");
+}
+
 function StatCard({ label, value, subtext, icon, color = "text-orange-500" }) {
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
@@ -209,6 +271,11 @@ export default function AdminPanel() {
                   value={stats.newUsersLast30Days}
                   color="text-purple-500"
                 />
+              </div>
+
+              {/* Summary */}
+              <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 mb-6">
+                <p className="text-sm text-zinc-300 leading-relaxed">{generateSummary(stats)}</p>
               </div>
 
               {/* Traffic Stats */}
