@@ -104,69 +104,6 @@ const questions = [
   },
 ];
 
-// Info screens shown after specific questions
-const infoScreens = {
-  1: {
-    icon: "📊",
-    title: "You're Not Alone",
-    stat: "87%",
-    description: "of athletes struggle to balance strength training with endurance work effectively.",
-    subtext: "Our program is designed specifically for this challenge.",
-  },
-  3: {
-    icon: "🔬",
-    title: "Science-Backed Training",
-    stat: "3-5 days",
-    description: "is the optimal training frequency for hybrid athletes according to recent studies.",
-    subtext: "Quality over quantity leads to better results.",
-  },
-  5: {
-    icon: "💪",
-    title: "You're Already Ahead",
-    stat: "Top 10%",
-    description: "Just by taking this quiz, you're more committed than 90% of people who want to improve.",
-    subtext: "Let's channel that motivation into results.",
-  },
-  7: {
-    icon: "🎯",
-    title: "Personalized For You",
-    stat: "12 weeks",
-    description: "is all it takes to see significant improvements with a structured hybrid program.",
-    subtext: "We'll build your custom plan based on your answers.",
-  },
-};
-
-function InfoScreen({ info, onContinue }) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setVisible(true), 100);
-  }, []);
-
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-      <div className={`transition-all duration-500 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
-        <span className="text-6xl mb-6 block">{info.icon}</span>
-
-        <h2 className="text-xl text-zinc-400 mb-2">{info.title}</h2>
-
-        <p className="text-6xl font-bold text-orange-500 mb-4">{info.stat}</p>
-
-        <p className="text-xl max-w-md mb-2">{info.description}</p>
-
-        <p className="text-zinc-500 mb-10">{info.subtext}</p>
-
-        <button
-          onClick={onContinue}
-          className="rounded-xl bg-orange-500 px-10 py-4 font-semibold text-white transition-colors hover:bg-orange-600"
-        >
-          Continue
-        </button>
-      </div>
-    </main>
-  );
-}
-
 function AnalyzingScreen({ onComplete }) {
   const [step, setStep] = useState(0);
   const steps = [
@@ -187,7 +124,7 @@ function AnalyzingScreen({ onComplete }) {
           return prev;
         }
       });
-    }, 1000);
+    }, 600);
 
     return () => clearInterval(interval);
   }, [onComplete, steps.length]);
@@ -491,7 +428,6 @@ export default function Quiz() {
   const router = useRouter();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
-  const [showInfoScreen, setShowInfoScreen] = useState(null);
   const [showAnalyzing, setShowAnalyzing] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -572,22 +508,10 @@ export default function Quiz() {
       localStorage.setItem("quizGoal", answer);
     }
 
-    // Check if we should show an info screen after this question
-    if (infoScreens[questionId]) {
-      setShowInfoScreen(questionId);
-    } else if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      // Last question - show analyzing screen
-      setShowAnalyzing(true);
-    }
-  };
-
-  const handleInfoContinue = () => {
-    setShowInfoScreen(null);
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
+      // Last question - show analyzing screen
       setShowAnalyzing(true);
     }
   };
@@ -601,9 +525,8 @@ export default function Quiz() {
       localStorage.setItem("quizHeightWeight", JSON.stringify(data));
     }
 
-    const questionId = questions[currentQuestion].id;
-    if (infoScreens[questionId]) {
-      setShowInfoScreen(questionId);
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
     } else {
       setShowAnalyzing(true);
     }
@@ -613,16 +536,6 @@ export default function Quiz() {
     setShowAnalyzing(false);
     setShowSignIn(true);
   };
-
-  // Show info screen
-  if (showInfoScreen) {
-    return (
-      <InfoScreen
-        info={infoScreens[showInfoScreen]}
-        onContinue={handleInfoContinue}
-      />
-    );
-  }
 
   // Show analyzing screen
   if (showAnalyzing) {
