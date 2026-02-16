@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resend } from "@/lib/resend";
 import { sendDripEmail } from "@/lib/emails";
 
 const DRIP_SCHEDULE = [
@@ -9,6 +10,8 @@ const DRIP_SCHEDULE = [
 ];
 
 const BATCH_LIMIT = 50;
+const DAILY_WARN_THRESHOLD = 80; // 80% of Resend free tier (100/day)
+const ADMIN_EMAIL = "jackfrisbie14@gmail.com";
 
 export async function GET(request) {
   // Verify cron secret (Vercel injects this for cron routes)
@@ -57,5 +60,36 @@ export async function GET(request) {
     results[emailType] = { eligible: users.length, sent, failed, skipped };
   }
 
-  return NextResponse.json({ success: true, results });
+  // Check if approaching Resend free tier daily limit
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const todayCount = await prisma.emailLog.count({
+    where: { sentAt: { gte: startOfDay } },
+  });
+
+  if (todayCount >= DAILY_WARN_THRESHOLD && resend) {
+    // Only alert once per day — check if we already sent one today
+    const alreadyAlerted = await prisma.emailLog.findFirst({
+      where: {
+        emailType: "usage_alert",
+        sentAt: { gte: startOfDay },
+      },
+    });
+
+    if (!alreadyAlerted) {
+      await resend.emails.send({
+        from: "Stride & Steel <onboarding@resend.dev>",
+        to: ADMIN_EMAIL,
+        subject: `⚠️ Resend usage alert: ${todayCount} emails sent today`,
+        html: `<p>You've sent <strong>${todayCount}</strong> emails today. The Resend free tier limit is 100/day.</p><p>Time to upgrade to the Pro plan ($20/mo for 50k emails/month): <a href="https://resend.com/pricing">resend.com/pricing</a></p>`,
+      });
+
+      await prisma.emailLog.create({
+        data: { userId: "system", emailType: "usage_alert" },
+      });
+    }
+  }
+
+  return NextResponse.json({ success: true, results, todayCount });
 }
