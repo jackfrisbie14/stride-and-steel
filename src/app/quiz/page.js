@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { trackFunnelEvent } from "@/components/Analytics";
 
 const questions = [
   {
@@ -467,6 +468,9 @@ export default function Quiz() {
         throw new Error("Failed to sign in");
       }
 
+      // Track successful signup
+      trackFunnelEvent("signup_complete");
+
       // Submit quiz answers to generate personalized workouts
       try {
         const quizRes = await fetch("/api/quiz/submit", {
@@ -535,6 +539,7 @@ export default function Quiz() {
   const handleAnalyzingComplete = () => {
     setShowAnalyzing(false);
     setShowSignIn(true);
+    trackFunnelEvent("signup_page");
   };
 
   // Show analyzing screen
