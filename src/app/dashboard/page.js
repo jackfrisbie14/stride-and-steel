@@ -17,7 +17,7 @@ import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/ar
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
 const ADMIN_EMAIL = "jackfrisbie14@gmail.com";
-const FREE_ACCESS_EMAILS = [ADMIN_EMAIL, "dlmanning1919@gmail.com", "hbetron@yahoo.com"];
+const FREE_ACCESS_EMAILS = [ADMIN_EMAIL, "dlmanning1919@gmail.com", "hbetron@yahoo.com", "jrfranco1207@gmail.com"];
 
 // Archetype descriptions keyed by label
 const archetypeDescriptions = {
