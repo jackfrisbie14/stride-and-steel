@@ -307,8 +307,8 @@ export default function CancelMembership() {
               <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-4">
                 <p className="text-sm text-zinc-400">Your next month:</p>
                 <p className="text-2xl font-bold text-white">
-                  <span className="line-through text-zinc-500 text-lg">$49.99</span>{" "}
-                  ${(49.99 * (1 - RETURN_OFFER_DISCOUNT / 100)).toFixed(2)}
+                  <span className="line-through text-zinc-500 text-lg">$19.99</span>{" "}
+                  ${(19.99 * (1 - RETURN_OFFER_DISCOUNT / 100)).toFixed(2)}
                 </p>
               </div>
               <div className="space-y-2">

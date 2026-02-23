@@ -241,7 +241,7 @@ export default async function Dashboard() {
                 href="/pricing"
                 className="inline-block rounded-lg bg-orange-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-orange-600 text-center"
               >
-                Subscribe - $49.99/mo
+                Subscribe - $19.99/mo
               </Link>
             </div>
           </div>

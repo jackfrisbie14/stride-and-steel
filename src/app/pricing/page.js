@@ -83,9 +83,13 @@ function PricingContent() {
             </div>
             <p className="text-lg text-orange-400 font-medium mt-2">7-day trial</p>
             {referralCode ? (
-              <p className="text-green-400 text-sm mt-1 font-medium">then $24.99 for your first month, $49.99/month after</p>
+              <p className="text-green-400 text-sm mt-1 font-medium">then $9.99 for your first month, $19.99/month after</p>
             ) : (
-              <p className="text-zinc-500 text-sm mt-1">then $49.99/month</p>
+              <div className="mt-1">
+                <span className="text-zinc-500 text-sm line-through">$49.99/month</span>
+                <span className="text-green-400 text-sm font-semibold ml-2">$19.99/month</span>
+                <p className="text-orange-400 text-xs font-medium mt-1">Early Adopter Launch Discount</p>
+              </div>
             )}
 
             <ul className="mt-8 space-y-4 text-left">
@@ -130,7 +134,7 @@ function PricingContent() {
             </button>
 
             <p className="mt-4 text-xs text-zinc-500">
-              Free for 7 days. Then $49.99/month. Cancel anytime.
+              Free for 7 days. Then $19.99/month. Cancel anytime.
             </p>
           </div>
         </div>

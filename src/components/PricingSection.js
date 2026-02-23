@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const MONTHLY_PRICE = 49.99;
+const MONTHLY_PRICE = 19.99;
+const ORIGINAL_PRICE = 49.99;
 const TRIAL_DAYS = 7;
 
 function TermsModal({ onClose }) {
@@ -168,7 +169,11 @@ export default function PricingSection() {
               <span className="text-5xl font-bold text-white">FREE</span>
             </div>
             <p className="text-lg text-orange-400 font-medium mt-2">{TRIAL_DAYS}-day trial</p>
-            <p className="text-zinc-500 text-sm mt-2">then ${MONTHLY_PRICE}/month</p>
+            <div className="mt-2">
+              <span className="text-zinc-500 text-sm line-through">${ORIGINAL_PRICE}/month</span>
+              <span className="text-green-400 text-sm font-semibold ml-2">${MONTHLY_PRICE}/month</span>
+            </div>
+            <p className="text-orange-400 text-xs font-medium mt-1">Early Adopter Launch Discount</p>
           </div>
 
           {/* Features */}

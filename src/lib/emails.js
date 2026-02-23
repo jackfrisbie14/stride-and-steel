@@ -104,7 +104,7 @@ const templates = {
          <tr>
            <td style="padding:12px 16px;border-left:3px solid #f97316;background-color:#1c1c1f;border-radius:0 8px 8px 0;">
              <span style="color:#71717a;font-size:13px;">Stride & Steel (both, personalized)</span><br/>
-             <span style="color:#f97316;font-size:18px;font-weight:700;">$49.99/month</span>
+             <span style="color:#f97316;font-size:18px;font-weight:700;">$19.99/month</span>
            </td>
          </tr>
        </table>
