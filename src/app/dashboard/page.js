@@ -59,9 +59,7 @@ export default async function Dashboard() {
   });
 
   if (!user) {
-    // User was deleted or doesn't exist — sign out and redirect
-    await signOut({ redirect: false });
-    redirect("/signin");
+    redirect("/api/auth/signout");
   }
 
   const isAdmin = session.user.email === ADMIN_EMAIL;
