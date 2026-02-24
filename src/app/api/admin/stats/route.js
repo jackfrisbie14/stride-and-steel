@@ -5,6 +5,18 @@ import { stripe } from "@/lib/stripe";
 
 const ADMIN_EMAIL = "jackfrisbie14@gmail.com";
 
+// Exclude test/internal accounts from stats
+const EXCLUDE_TEST_USERS = [
+  { email: { contains: "jackfrisbie", mode: "insensitive" } },
+  { name: { contains: "jack frisbie", mode: "insensitive" } },
+  { name: { equals: "jack", mode: "insensitive" } },
+  { name: { contains: "hannah betron", mode: "insensitive" } },
+  { name: { contains: "richard buehling", mode: "insensitive" } },
+  { name: { contains: "nextdirk", mode: "insensitive" } },
+  { email: { contains: "nextdirk", mode: "insensitive" } },
+  { name: { contains: "stuart bladon", mode: "insensitive" } },
+];
+
 export async function GET(request) {
   try {
     const session = await auth();
@@ -17,13 +29,14 @@ export async function GET(request) {
     const allUsers = searchParams.get("allUsers") === "true";
 
     // Get user stats
-    const totalUsers = await prisma.user.count();
+    const totalUsers = await prisma.user.count({
+      where: { NOT: EXCLUDE_TEST_USERS },
+    });
 
     const usersWithSubscription = await prisma.user.count({
       where: {
-        stripeCurrentPeriodEnd: {
-          gt: new Date(),
-        },
+        stripeCurrentPeriodEnd: { gt: new Date() },
+        NOT: EXCLUDE_TEST_USERS,
       },
     });
 
@@ -33,9 +46,8 @@ export async function GET(request) {
 
     const newUsersLast30Days = await prisma.user.count({
       where: {
-        createdAt: {
-          gte: thirtyDaysAgo,
-        },
+        createdAt: { gte: thirtyDaysAgo },
+        NOT: EXCLUDE_TEST_USERS,
       },
     });
 
@@ -45,9 +57,8 @@ export async function GET(request) {
 
     const recentUsers = await prisma.user.findMany({
       where: {
-        createdAt: {
-          gte: sevenDaysAgo,
-        },
+        createdAt: { gte: sevenDaysAgo },
+        NOT: EXCLUDE_TEST_USERS,
       },
       select: {
         createdAt: true,
@@ -152,12 +163,14 @@ export async function GET(request) {
         stripeCurrentPeriodEnd: { gt: new Date() },
         firstPaidAt: null,
         stripeSubscriptionId: { not: null },
+        NOT: EXCLUDE_TEST_USERS,
       },
     });
 
     // Get users list
     const recentUsersList = await prisma.user.findMany({
       ...(allUsers ? {} : { take: 10 }),
+      where: { NOT: EXCLUDE_TEST_USERS },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
