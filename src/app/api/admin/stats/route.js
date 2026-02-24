@@ -5,13 +5,16 @@ import { stripe } from "@/lib/stripe";
 
 const ADMIN_EMAIL = "jackfrisbie14@gmail.com";
 
-export async function GET() {
+export async function GET(request) {
   try {
     const session = await auth();
 
     if (!session?.user?.email || session.user.email !== ADMIN_EMAIL) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const { searchParams } = new URL(request.url);
+    const allUsers = searchParams.get("allUsers") === "true";
 
     // Get user stats
     const totalUsers = await prisma.user.count();
@@ -143,9 +146,18 @@ export async function GET() {
       take: 10,
     });
 
-    // Get recent users list
+    // Free trial users: active subscription but no first real payment yet
+    const freeTrialUsers = await prisma.user.count({
+      where: {
+        stripeCurrentPeriodEnd: { gt: new Date() },
+        firstPaidAt: null,
+        stripeSubscriptionId: { not: null },
+      },
+    });
+
+    // Get users list
     const recentUsersList = await prisma.user.findMany({
-      take: 10,
+      ...(allUsers ? {} : { take: 10 }),
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -153,6 +165,8 @@ export async function GET() {
         name: true,
         createdAt: true,
         stripeCurrentPeriodEnd: true,
+        firstPaidAt: true,
+        stripeSubscriptionId: true,
       },
     });
 
@@ -177,6 +191,7 @@ export async function GET() {
       totalUsers,
       activeSubscriptions: usersWithSubscription,
       newUsersLast30Days,
+      freeTrialUsers,
       mrr: Math.round(mrr * 100) / 100,
       totalWorkoutsCompleted,
       totalWorkoutsSkipped,

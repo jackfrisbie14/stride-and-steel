@@ -66,8 +66,12 @@ function generateSummary(stats) {
 
   // Revenue & subscribers
   if (stats.activeSubscriptions > 0) {
-    const arpu = stats.mrr / stats.activeSubscriptions;
-    parts.push(`You're at $${stats.mrr.toLocaleString()} MRR from ${stats.activeSubscriptions} active subscriber${stats.activeSubscriptions === 1 ? "" : "s"} ($${arpu.toFixed(2)}/user).`);
+    const paidSubs = stats.activeSubscriptions - (stats.freeTrialUsers || 0);
+    const arpu = paidSubs > 0 ? stats.mrr / paidSubs : 0;
+    parts.push(`You're at $${stats.mrr.toLocaleString()} MRR from ${paidSubs} paid subscriber${paidSubs === 1 ? "" : "s"}${arpu > 0 ? ` ($${arpu.toFixed(2)}/user)` : ""}.`);
+    if (stats.freeTrialUsers > 0) {
+      parts.push(`${stats.freeTrialUsers} user${stats.freeTrialUsers === 1 ? " is" : "s are"} currently on a free trial.`);
+    }
   } else {
     parts.push(`No active subscribers yet. ${stats.totalUsers} user${stats.totalUsers === 1 ? " has" : "s have"} signed up so far.`);
   }
@@ -143,6 +147,8 @@ export default function AdminPanel() {
   const [refunds, setRefunds] = useState(null);
   const [refundsLoading, setRefundsLoading] = useState(false);
   const [processingRefund, setProcessingRefund] = useState(null);
+  const [showAllUsers, setShowAllUsers] = useState(false);
+  const [allUsersLoading, setAllUsersLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && !stats) {
@@ -151,10 +157,10 @@ export default function AdminPanel() {
     }
   }, [isOpen]);
 
-  const fetchStats = async () => {
+  const fetchStats = async (allUsers = false) => {
     try {
-      setLoading(true);
-      const res = await fetch("/api/admin/stats");
+      if (!allUsers) setLoading(true);
+      const res = await fetch(`/api/admin/stats${allUsers ? "?allUsers=true" : ""}`);
       if (!res.ok) throw new Error("Failed to fetch stats");
       const data = await res.json();
       setStats(data);
@@ -162,6 +168,18 @@ export default function AdminPanel() {
       setError(e.message);
     } finally {
       setLoading(false);
+      setAllUsersLoading(false);
+    }
+  };
+
+  const handleToggleAllUsers = () => {
+    if (!showAllUsers) {
+      setAllUsersLoading(true);
+      setShowAllUsers(true);
+      fetchStats(true);
+    } else {
+      setShowAllUsers(false);
+      fetchStats(false);
     }
   };
 
@@ -246,7 +264,7 @@ export default function AdminPanel() {
             <>
               {/* Key Metrics */}
               <h3 className="text-lg font-semibold mb-4 text-zinc-300">Key Metrics</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
                 <StatCard
                   icon="💰"
                   label="MRR"
@@ -257,7 +275,14 @@ export default function AdminPanel() {
                   icon="⭐"
                   label="Active Subs"
                   value={stats.activeSubscriptions}
+                  subtext={stats.freeTrialUsers > 0 ? `${stats.activeSubscriptions - stats.freeTrialUsers} paid` : undefined}
                   color="text-yellow-500"
+                />
+                <StatCard
+                  icon="🆓"
+                  label="Free Trial"
+                  value={stats.freeTrialUsers}
+                  color="text-cyan-500"
                 />
                 <StatCard
                   icon="👥"
@@ -365,8 +390,13 @@ export default function AdminPanel() {
                 />
               </div>
 
-              {/* Recent Users */}
-              <h3 className="text-lg font-semibold mb-4 text-zinc-300">Recent Users</h3>
+              {/* Users */}
+              <h3 className="text-lg font-semibold mb-4 text-zinc-300">
+                {showAllUsers ? "All Users" : "Recent Users"}
+                <span className="ml-2 text-sm font-normal text-zinc-500">
+                  ({stats.recentUsers.length}{showAllUsers ? "" : ` of ${stats.totalUsers}`})
+                </span>
+              </h3>
               <div className="rounded-lg border border-zinc-800 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-zinc-800">
@@ -379,6 +409,7 @@ export default function AdminPanel() {
                   <tbody>
                     {stats.recentUsers.map((user) => {
                       const isActive = user.stripeCurrentPeriodEnd && new Date(user.stripeCurrentPeriodEnd) > new Date();
+                      const isTrial = isActive && !user.firstPaidAt && user.stripeSubscriptionId;
                       return (
                         <tr key={user.id} className="border-t border-zinc-800">
                           <td className="p-3">
@@ -390,11 +421,13 @@ export default function AdminPanel() {
                           </td>
                           <td className="p-3 text-right">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              isActive
+                              isTrial
+                                ? "bg-cyan-500/20 text-cyan-400"
+                                : isActive
                                 ? "bg-green-500/20 text-green-400"
                                 : "bg-zinc-700 text-zinc-400"
                             }`}>
-                              {isActive ? "Pro" : "Free"}
+                              {isTrial ? "Trial" : isActive ? "Pro" : "Free"}
                             </span>
                           </td>
                         </tr>
@@ -403,6 +436,15 @@ export default function AdminPanel() {
                   </tbody>
                 </table>
               </div>
+              {stats.totalUsers > 10 && (
+                <button
+                  onClick={handleToggleAllUsers}
+                  disabled={allUsersLoading}
+                  className="mt-3 w-full py-2 rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-800 transition-colors text-sm disabled:opacity-50"
+                >
+                  {allUsersLoading ? "Loading..." : showAllUsers ? "Show Less" : `See All Users (${stats.totalUsers})`}
+                </button>
+              )}
 
               {/* Refund Requests */}
               <h3 className="text-lg font-semibold mb-4 text-zinc-300 mt-6 pt-6 border-t border-zinc-800">
