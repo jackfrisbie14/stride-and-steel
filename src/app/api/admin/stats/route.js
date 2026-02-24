@@ -15,6 +15,8 @@ const EXCLUDE_TEST_USERS = [
   { name: { contains: "nextdirk", mode: "insensitive" } },
   { email: { contains: "nextdirk", mode: "insensitive" } },
   { name: { contains: "stuart bladon", mode: "insensitive" } },
+  { email: { contains: "hbetron", mode: "insensitive" } },
+  { email: { contains: "richard@benmore", mode: "insensitive" } },
 ];
 
 export async function GET(request) {
