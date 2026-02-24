@@ -79,7 +79,7 @@ export async function GET(request) {
 
     if (!alreadyAlerted) {
       await resend.emails.send({
-        from: "Stride & Steel <onboarding@resend.dev>",
+        from: "Stride & Steel <hello@strideandsteel.com>",
         to: ADMIN_EMAIL,
         subject: `⚠️ Resend usage alert: ${todayCount} emails sent today`,
         html: `<p>You've sent <strong>${todayCount}</strong> emails today. The Resend free tier limit is 100/day.</p><p>Time to upgrade to the Pro plan ($20/mo for 50k emails/month): <a href="https://resend.com/pricing">resend.com/pricing</a></p>`,
