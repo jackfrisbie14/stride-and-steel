@@ -148,7 +148,7 @@ export async function sendDripEmail(user, emailType) {
   const { subject, html } = template(user);
 
   const { error } = await resend.emails.send({
-    from: "Stride & Steel <onboarding@resend.dev>",
+    from: "Stride & Steel <hello@strideandsteel.com>",
     to: user.email,
     subject,
     html,
