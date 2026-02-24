@@ -42,7 +42,7 @@ function getBMICategory(bmi) {
 }
 
 // Calculate daily calories using Mifflin-St Jeor equation
-function calculateCalories(heightData, weightData, unit, activityLevel = 1.55) {
+function calculateCalories(heightData, weightData, unit, gender, activityLevel = 1.55) {
   let heightInCm, weightInKg;
 
   if (unit === "imperial") {
@@ -55,14 +55,18 @@ function calculateCalories(heightData, weightData, unit, activityLevel = 1.55) {
     weightInKg = parseFloat(weightData);
   }
 
-  // Assume average age of 30 and calculate for both genders, use average
+  // Mifflin-St Jeor equation, assume average age of 30
   const age = 30;
   const bmrMale = 10 * weightInKg + 6.25 * heightInCm - 5 * age + 5;
   const bmrFemale = 10 * weightInKg + 6.25 * heightInCm - 5 * age - 161;
-  const avgBMR = (bmrMale + bmrFemale) / 2;
+
+  // Use gender-specific BMR when known, otherwise average
+  const bmr = gender === "Woman" ? bmrFemale
+    : gender === "Man" ? bmrMale
+    : (bmrMale + bmrFemale) / 2;
 
   // Activity multiplier for "moderately active" (hybrid athletes)
-  const tdee = avgBMR * activityLevel;
+  const tdee = bmr * activityLevel;
 
   return {
     maintenance: Math.round(tdee),
@@ -120,6 +124,7 @@ export default function Results() {
     if (typeof window !== "undefined") {
       const heightWeightData = localStorage.getItem("quizHeightWeight");
       const savedArchetype = localStorage.getItem("quizArchetype");
+      const gender = localStorage.getItem("quizGender");
       if (savedArchetype) {
         setArchetypeLabel(savedArchetype);
       }
@@ -128,7 +133,7 @@ export default function Results() {
         try {
           const data = JSON.parse(heightWeightData);
           const bmi = calculateBMI(data.height, data.weight, data.unit);
-          const calories = calculateCalories(data.height, data.weight, data.unit);
+          const calories = calculateCalories(data.height, data.weight, data.unit, gender);
 
           setMetrics({
             bmi,
