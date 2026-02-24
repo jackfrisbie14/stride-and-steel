@@ -20,6 +20,14 @@ async function trackPageView(path) {
   const visitorId = getVisitorId();
   if (!visitorId) return;
 
+  // Generate a shared event ID for Facebook dedup (client pixel + server CAPI)
+  const fbEventId = "pv_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+  // Fire client-side Facebook PageView with eventID for dedup
+  if (typeof window.fbq === "function") {
+    window.fbq("track", "PageView", {}, { eventID: fbEventId });
+  }
+
   try {
     await fetch("/api/analytics/track", {
       method: "POST",
@@ -30,6 +38,7 @@ async function trackPageView(path) {
         visitorId,
         referrer: document.referrer || null,
         userAgent: navigator.userAgent || null,
+        fbEventId,
       }),
     });
   } catch (e) {

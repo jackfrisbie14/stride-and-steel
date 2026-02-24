@@ -6,17 +6,19 @@ import { sendFBEvent } from "@/lib/facebook";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { type, path, step, visitorId, referrer, userAgent, metadata } = body;
+    const { type, path, step, visitorId, referrer, userAgent, metadata, fbEventId } = body;
 
     if (!visitorId) {
       return NextResponse.json({ error: "Missing visitorId" }, { status: 400 });
     }
 
-    // Get user ID if logged in
+    // Get user ID and email if logged in
     let userId = null;
+    let userEmail = null;
     try {
       const session = await auth();
       if (session?.user?.email) {
+        userEmail = session.user.email;
         const user = await prisma.user.findUnique({
           where: { email: session.user.email },
           select: { id: true },
@@ -36,6 +38,14 @@ export async function POST(request) {
           referrer: referrer || null,
           userAgent: userAgent || null,
         },
+      });
+
+      // Send server-side PageView to Facebook CAPI with email for better matching
+      sendFBEvent("PageView", {
+        email: userEmail || undefined,
+        sourceUrl: path,
+        userAgent: userAgent || request.headers.get("user-agent") || undefined,
+        eventId: fbEventId || undefined,
       });
     }
 

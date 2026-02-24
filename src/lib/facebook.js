@@ -9,7 +9,7 @@ function hashSHA256(value) {
 
 export async function sendFBEvent(
   eventName,
-  { email, sourceUrl, userAgent, value, currency } = {}
+  { email, sourceUrl, userAgent, value, currency, eventId } = {}
 ) {
   if (!FB_PIXEL_ID || !FB_ACCESS_TOKEN) return;
 
@@ -20,7 +20,7 @@ export async function sendFBEvent(
   const eventData = {
     event_name: eventName,
     event_time: Math.floor(Date.now() / 1000),
-    event_id: randomUUID(),
+    event_id: eventId || randomUUID(),
     action_source: "website",
     user_data: userData,
   };
