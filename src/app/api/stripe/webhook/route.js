@@ -151,6 +151,14 @@ export async function POST(request) {
               where: { id: user.id },
               data: { firstPaidAt: new Date() },
             });
+
+            // Fire Purchase event to Meta — first real payment after trial
+            const amount = invoice.amount_paid;
+            sendFBEvent("Purchase", {
+              email: user.email,
+              value: amount ? amount / 100 : undefined,
+              currency: invoice.currency?.toUpperCase() || "USD",
+            });
           }
 
           // Reward referrer when referred user makes their first real payment

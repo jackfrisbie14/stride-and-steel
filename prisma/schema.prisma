@@ -83,6 +83,12 @@ model User {
   // Email preferences
   unsubscribedFromEmail    Boolean @default(false)
 
+  // Ad campaign attribution (first-touch UTM params)
+  utmSource                String?
+  utmMedium                String?
+  utmCampaign              String?
+  utmContent               String?
+
   // Onboarding
   tourCompleted            Boolean @default(false) // User has completed the onboarding tour
   onboardingCompleted      Boolean @default(false) // User has completed post-signup onboarding questions

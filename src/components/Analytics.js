@@ -15,6 +15,43 @@ function getVisitorId() {
   return visitorId;
 }
 
+// Capture UTM params from URL (first-touch only — don't overwrite)
+function captureUtmParams() {
+  if (typeof window === "undefined") return;
+
+  // Only store on first touch
+  if (localStorage.getItem("ss_utm_source")) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const utmSource = params.get("utm_source");
+
+  // Only store if at least utm_source is present
+  if (utmSource) {
+    localStorage.setItem("ss_utm_source", utmSource);
+    const medium = params.get("utm_medium");
+    const campaign = params.get("utm_campaign");
+    const content = params.get("utm_content");
+    if (medium) localStorage.setItem("ss_utm_medium", medium);
+    if (campaign) localStorage.setItem("ss_utm_campaign", campaign);
+    if (content) localStorage.setItem("ss_utm_content", content);
+  }
+}
+
+// Get stored UTM data (returns null if no UTM params were captured)
+export function getUtmData() {
+  if (typeof window === "undefined") return null;
+
+  const source = localStorage.getItem("ss_utm_source");
+  if (!source) return null;
+
+  return {
+    utm_source: source,
+    utm_medium: localStorage.getItem("ss_utm_medium") || undefined,
+    utm_campaign: localStorage.getItem("ss_utm_campaign") || undefined,
+    utm_content: localStorage.getItem("ss_utm_content") || undefined,
+  };
+}
+
 // Track a page view
 async function trackPageView(path) {
   const visitorId = getVisitorId();
@@ -39,6 +76,7 @@ async function trackPageView(path) {
         referrer: document.referrer || null,
         userAgent: navigator.userAgent || null,
         fbEventId,
+        utm: getUtmData(),
       }),
     });
   } catch (e) {
@@ -60,6 +98,7 @@ export async function trackFunnelEvent(step, metadata = null) {
         step,
         visitorId,
         metadata,
+        utm: getUtmData(),
       }),
     });
   } catch (e) {
@@ -82,6 +121,9 @@ export default function Analytics() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Capture UTM params on first page load
+    captureUtmParams();
+
     // Track page view
     trackPageView(pathname);
 

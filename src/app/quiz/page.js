@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
-import { trackFunnelEvent } from "@/components/Analytics";
+import { trackFunnelEvent, getUtmData } from "@/components/Analytics";
 import { determineArchetype, archetypes } from "@/lib/archetypes";
 
 // Static sample Day 1 workouts per archetype (for preview before signup)
@@ -227,7 +227,7 @@ function QuizContent() {
         const quizRes = await fetch("/api/quiz/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, answers }),
+          body: JSON.stringify({ email, answers, utm: getUtmData() }),
         });
         if (quizRes.ok) {
           const quizData = await quizRes.json();
@@ -266,6 +266,26 @@ function QuizContent() {
     setRevealedArchetype(archetype);
     setShowArchetypeReveal(true);
     trackFunnelEvent("archetype_reveal");
+
+    // Fire Lead event for Meta optimization (the key fix from last campaign)
+    const leadEventId = "lead_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+    // Client-side pixel
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      window.fbq("track", "Lead", {}, { eventID: leadEventId });
+    }
+
+    // Server-side CAPI (deduped via shared eventID)
+    fetch("/api/analytics/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "lead",
+        visitorId: typeof window !== "undefined" ? localStorage.getItem("ss_visitor_id") : null,
+        fbEventId: leadEventId,
+        utm: getUtmData(),
+      }),
+    }).catch(() => {});
   };
 
   const handleGetFullPlan = () => {

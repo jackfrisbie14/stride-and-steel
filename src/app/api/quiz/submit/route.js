@@ -5,7 +5,7 @@ import { generateQuizWorkouts } from "@/lib/workout-generator";
 
 export async function POST(request) {
   try {
-    const { email, answers } = await request.json();
+    const { email, answers, utm } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -22,14 +22,24 @@ export async function POST(request) {
       where: { email },
     });
 
+    // Build UTM fields (only set if not already stored — first-touch attribution)
+    const utmData = utm ? {
+      utmSource: utm.utm_source || undefined,
+      utmMedium: utm.utm_medium || undefined,
+      utmCampaign: utm.utm_campaign || undefined,
+      utmContent: utm.utm_content || undefined,
+    } : {};
+
     if (user) {
-      // Update existing user's quiz answers
+      // Update existing user's quiz answers (only set UTM if not already stored)
+      const utmUpdate = !user.utmSource ? utmData : {};
       user = await prisma.user.update({
         where: { email },
         data: {
           quizAnswers: answers,
           archetype: archetype.label,
           trainingDays,
+          ...utmUpdate,
         },
       });
     } else {
@@ -40,6 +50,7 @@ export async function POST(request) {
           quizAnswers: answers,
           archetype: archetype.label,
           trainingDays,
+          ...utmData,
         },
       });
     }

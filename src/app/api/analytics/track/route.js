@@ -6,7 +6,7 @@ import { sendFBEvent } from "@/lib/facebook";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { type, path, step, visitorId, referrer, userAgent, metadata, fbEventId } = body;
+    const { type, path, step, visitorId, referrer, userAgent, metadata, fbEventId, utm } = body;
 
     if (!visitorId) {
       return NextResponse.json({ error: "Missing visitorId" }, { status: 400 });
@@ -59,12 +59,15 @@ export async function POST(request) {
       });
 
       if (!existing) {
+        // Merge UTM data into metadata for attribution
+        const enrichedMetadata = { ...(metadata || {}), ...(utm ? { utm } : {}) };
+
         await prisma.funnelEvent.create({
           data: {
             step,
             visitorId,
             userId,
-            metadata: metadata || null,
+            metadata: Object.keys(enrichedMetadata).length > 0 ? enrichedMetadata : null,
           },
         });
 
@@ -74,6 +77,15 @@ export async function POST(request) {
           });
         }
       }
+    }
+
+    // Handle Lead event (quiz completion / archetype reveal)
+    if (type === "lead") {
+      sendFBEvent("Lead", {
+        email: userEmail || undefined,
+        userAgent: userAgent || request.headers.get("user-agent") || undefined,
+        eventId: fbEventId || undefined,
+      });
     }
 
     return NextResponse.json({ success: true });
