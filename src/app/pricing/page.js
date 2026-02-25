@@ -8,12 +8,15 @@ import { useSearchParams } from "next/navigation";
 function PricingContent() {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [plan, setPlan] = useState("annual");
   const searchParams = useSearchParams();
   const canceled = searchParams.get("canceled");
   const refParam = searchParams.get("ref");
 
   const [referralCode, setReferralCode] = useState(refParam || "");
   const [showReferralInput, setShowReferralInput] = useState(false);
+
+  const isAnnual = plan === "annual";
 
   const handleSubscribe = async () => {
     if (!session) {
@@ -23,9 +26,14 @@ function PricingContent() {
 
     setLoading(true);
     try {
-      const body = {};
+      const body = { plan };
       if (referralCode) {
         body.referralCode = referralCode;
+      }
+      // Check localStorage for referral from quiz flow
+      if (!referralCode && typeof window !== "undefined") {
+        const storedRef = localStorage.getItem("referralCode");
+        if (storedRef) body.referralCode = storedRef;
       }
 
       const response = await fetch("/api/stripe/checkout", {
@@ -53,13 +61,13 @@ function PricingContent() {
       <div className="mx-auto max-w-4xl text-center">
         {canceled && (
           <div className="mb-8 rounded-lg bg-yellow-500/10 border border-yellow-500/30 p-4 text-yellow-500">
-            Checkout was canceled. You can try again when you're ready.
+            Checkout was canceled. You can try again when you&apos;re ready.
           </div>
         )}
 
         {refParam && (
           <div className="mb-8 rounded-lg bg-green-500/10 border border-green-500/30 p-4 text-green-400">
-            You were referred by a friend! You&apos;ll get 50% off your first month after your trial.
+            You were referred by a friend! You&apos;ll get 50% off your first period after your trial.
           </div>
         )}
 
@@ -72,8 +80,31 @@ function PricingContent() {
           and everything you need to run fast and lift strong.
         </p>
 
+        {/* Plan Toggle */}
+        <div className="flex items-center justify-center gap-1 mt-10 mb-6 p-1 bg-zinc-800 rounded-lg w-fit mx-auto">
+          <button
+            onClick={() => setPlan("monthly")}
+            className={`px-5 py-2.5 rounded-md text-sm font-medium transition-colors ${
+              !isAnnual ? "bg-orange-500 text-white" : "text-zinc-400 hover:text-zinc-300"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setPlan("annual")}
+            className={`px-5 py-2.5 rounded-md text-sm font-medium transition-colors relative ${
+              isAnnual ? "bg-orange-500 text-white" : "text-zinc-400 hover:text-zinc-300"
+            }`}
+          >
+            Annual
+            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+              Save 37%
+            </span>
+          </button>
+        </div>
+
         {/* Pricing Card */}
-        <div className="mt-12 mx-auto max-w-md rounded-2xl border border-orange-500/30 bg-zinc-900 p-8">
+        <div className="mt-2 mx-auto max-w-md rounded-2xl border border-orange-500/30 bg-zinc-900 p-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold">Stride & Steel Pro</h2>
             <p className="mt-2 text-zinc-400">Full access to all features</p>
@@ -83,46 +114,40 @@ function PricingContent() {
             </div>
             <p className="text-lg text-orange-400 font-medium mt-2">7-day trial</p>
             {referralCode ? (
-              <p className="text-green-400 text-sm mt-1 font-medium">then $9.99 for your first month, $19.99/month after</p>
+              <p className="text-green-400 text-sm mt-1 font-medium">
+                then 50% off your first {isAnnual ? "year" : "month"} after trial
+              </p>
             ) : (
               <div className="mt-1">
-                <span className="text-zinc-500 text-sm line-through">$49.99/month</span>
-                <span className="text-green-400 text-sm font-semibold ml-2">$19.99/month</span>
+                <span className="text-zinc-500 text-sm line-through">
+                  ${isAnnual ? "399.99/year" : "49.99/month"}
+                </span>
+                <span className="text-green-400 text-sm font-semibold ml-2">
+                  ${isAnnual ? "149.99/year" : "19.99/month"}
+                </span>
+                {isAnnual && (
+                  <p className="text-green-400 text-xs font-medium mt-1">$12.50/mo billed annually</p>
+                )}
                 <p className="text-orange-400 text-xs font-medium mt-1">Early Adopter Launch Discount</p>
               </div>
             )}
 
             <ul className="mt-8 space-y-4 text-left">
-              <li className="flex items-center gap-3">
-                <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Personalized weekly workout plans
-              </li>
-              <li className="flex items-center gap-3">
-                <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Hybrid training programs (run + lift)
-              </li>
-              <li className="flex items-center gap-3">
-                <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Progress tracking dashboard
-              </li>
-              <li className="flex items-center gap-3">
-                <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                New workouts every week
-              </li>
-              <li className="flex items-center gap-3">
-                <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Cancel anytime
-              </li>
+              {[
+                "Personalized weekly workout plans",
+                "Hybrid training programs (run + lift)",
+                "Progress tracking dashboard",
+                "New workouts every week",
+                "The PR-or-Free Promise",
+                "Cancel anytime",
+              ].map((feature, i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <svg className="h-5 w-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {feature}
+                </li>
+              ))}
             </ul>
 
             <button
@@ -134,7 +159,7 @@ function PricingContent() {
             </button>
 
             <p className="mt-4 text-xs text-zinc-500">
-              Free for 7 days. Then $19.99/month. Cancel anytime.
+              Free for 7 days. Then ${isAnnual ? "149.99/year" : "19.99/month"}. Cancel anytime.
             </p>
           </div>
         </div>
@@ -163,7 +188,7 @@ function PricingContent() {
                 />
                 {referralCode && (
                   <p className="mt-2 text-xs text-green-400">
-                    50% off your first month will be applied at checkout!
+                    50% off your first {isAnnual ? "year" : "month"} will be applied at checkout!
                   </p>
                 )}
               </div>

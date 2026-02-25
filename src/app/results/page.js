@@ -96,59 +96,70 @@ export default function Results() {
     if (status === "unauthenticated") {
       router.push("/quiz");
     }
-    // For Google OAuth users: submit stored quiz answers after redirect
-    if (status === "authenticated" && session?.user?.email && typeof window !== "undefined") {
-      const storedAnswers = localStorage.getItem("quizAnswers");
-      if (storedAnswers) {
-        const answers = JSON.parse(storedAnswers);
-        fetch("/api/quiz/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: session.user.email, answers }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.archetype) {
-              localStorage.setItem("quizArchetype", data.archetype);
-              setArchetypeLabel(data.archetype);
-            }
-            localStorage.removeItem("quizAnswers");
-          })
-          .catch((err) => console.error("Quiz submit error:", err));
-      }
-    }
-  }, [status, router, session]);
+  }, [status, router]);
 
-  // Load quiz data from localStorage
+  // Load user data: try DB first (via API), then fall back to localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const heightWeightData = localStorage.getItem("quizHeightWeight");
-      const savedArchetype = localStorage.getItem("quizArchetype");
-      const gender = localStorage.getItem("quizGender");
-      if (savedArchetype) {
-        setArchetypeLabel(savedArchetype);
-      }
+    if (status !== "authenticated") return;
 
-      if (heightWeightData) {
-        try {
-          const data = JSON.parse(heightWeightData);
-          const bmi = calculateBMI(data.height, data.weight, data.unit);
-          const calories = calculateCalories(data.height, data.weight, data.unit, gender);
+    // Fetch user profile from DB
+    fetch("/api/user/profile")
+      .then((res) => res.ok ? res.json() : null)
+      .then((userData) => {
+        if (userData?.archetype) {
+          setArchetypeLabel(userData.archetype);
+        }
 
+        // Try DB data first for metrics
+        if (userData?.height && userData?.weight) {
+          const bmi = calculateBMI(userData.height, userData.weight, userData.heightWeightUnit || "imperial");
+          const calories = calculateCalories(userData.height, userData.weight, userData.heightWeightUnit || "imperial", userData.gender);
           setMetrics({
             bmi,
             bmiCategory: bmi ? getBMICategory(bmi) : null,
             calories,
-            height: data.height,
-            weight: data.weight,
+            height: userData.height,
+            weight: userData.weight,
           });
-        } catch (e) {
-          console.error("Error parsing quiz data:", e);
+          return;
         }
-      }
 
-    }
-  }, []);
+        // Fall back to localStorage for height/weight
+        if (typeof window !== "undefined") {
+          const savedArchetype = localStorage.getItem("quizArchetype");
+          if (savedArchetype && !userData?.archetype) {
+            setArchetypeLabel(savedArchetype);
+          }
+
+          const heightWeightData = localStorage.getItem("quizHeightWeight");
+          const gender = localStorage.getItem("quizGender");
+          if (heightWeightData) {
+            try {
+              const data = JSON.parse(heightWeightData);
+              const bmi = calculateBMI(data.height, data.weight, data.unit);
+              const calories = calculateCalories(data.height, data.weight, data.unit, gender);
+              setMetrics({
+                bmi,
+                bmiCategory: bmi ? getBMICategory(bmi) : null,
+                calories,
+                height: data.height,
+                weight: data.weight,
+              });
+            } catch (e) {
+              console.error("Error parsing quiz data:", e);
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user profile:", err);
+        // Fall back to localStorage
+        if (typeof window !== "undefined") {
+          const savedArchetype = localStorage.getItem("quizArchetype");
+          if (savedArchetype) setArchetypeLabel(savedArchetype);
+        }
+      });
+  }, [status]);
 
   if (status === "loading") {
     return (

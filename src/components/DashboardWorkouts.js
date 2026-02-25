@@ -3,9 +3,12 @@
 import { useState, useEffect } from "react";
 import WorkoutCard from "./WorkoutCard";
 
+const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 export default function DashboardWorkouts({ workouts, isSubscribed }) {
   const [workoutLogs, setWorkoutLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const todayName = dayNames[new Date().getDay()];
 
   // Fetch workout logs on mount
   useEffect(() => {
@@ -63,7 +66,7 @@ export default function DashboardWorkouts({ workouts, isSubscribed }) {
     <div data-tour="workouts" className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">This Week's Workouts</h3>
+          <h3 className="text-lg font-semibold">Your Hybrid Engine — This Week</h3>
           {isSubscribed && (
             <button
               onClick={() => document.getElementById("customization-panel")?.scrollIntoView({ behavior: "smooth" })}
@@ -94,16 +97,31 @@ export default function DashboardWorkouts({ workouts, isSubscribed }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {workouts.map((workout, index) => (
-            <div key={index} data-tour={index === 0 ? "workout-card" : undefined}>
-              <WorkoutCard
-                workout={workout}
-                locked={!isSubscribed && index > 1}
-                workoutLog={isSubscribed ? getWorkoutLog(workout.day) : null}
-                onLogWorkout={isSubscribed ? handleLogWorkout : null}
-              />
-            </div>
-          ))}
+          {workouts.map((workout, index) => {
+            const isToday = workout.day === todayName;
+            const log = isSubscribed ? getWorkoutLog(workout.day) : null;
+            const isCompleted = log?.completed || log?.skipped;
+            return (
+              <div key={index} data-tour={index === 0 ? "workout-card" : undefined}>
+                {isToday && !isCompleted && (
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider">
+                      {workout.type === "Recovery" ? "Bulletproof Base — Recovery Day" : "Daily Directive — Today"}
+                    </span>
+                    <span className="inline-block h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                  </div>
+                )}
+                <div className={isToday && !isCompleted ? "ring-2 ring-orange-500/50 rounded-xl" : ""}>
+                  <WorkoutCard
+                    workout={workout}
+                    locked={!isSubscribed && index > 1}
+                    workoutLog={log}
+                    onLogWorkout={isSubscribed ? handleLogWorkout : null}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

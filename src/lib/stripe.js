@@ -5,3 +5,4 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY?.trim(), {
 });
 
 export const PRICE_ID = process.env.STRIPE_PRICE_ID?.trim();
+export const ANNUAL_PRICE_ID = process.env.STRIPE_ANNUAL_PRICE_ID?.trim();

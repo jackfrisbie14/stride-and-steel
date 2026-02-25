@@ -2,9 +2,43 @@
 
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { trackFunnelEvent } from "@/components/Analytics";
+import { determineArchetype, archetypes } from "@/lib/archetypes";
+
+// Static sample Day 1 workouts per archetype (for preview before signup)
+const sampleWorkouts = {
+  ironRunner: [
+    { day: "Monday", type: "Run", title: "Tempo Run", summary: "10 min warm-up, 20 min tempo, 10 min cool-down" },
+    { day: "Tuesday", type: "Lift", title: "Upper Body Strength", summary: "Bench Press, Rows, OHP, Pull-ups" },
+    { day: "Wednesday", type: "Run", title: "Easy Run", summary: "30 min conversational pace" },
+    { day: "Thursday", type: "Lift", title: "Lower Body Strength", summary: "Squats, RDLs, Lunges, Calf Raises" },
+    { day: "Friday", type: "Run", title: "Interval Run", summary: "8x400m at 5K pace" },
+  ],
+  steelStrider: [
+    { day: "Monday", type: "Lift", title: "Upper Body Power", summary: "Bench Press, Weighted Pull-ups, OHP, Rows" },
+    { day: "Tuesday", type: "Run", title: "Easy Run", summary: "30 min conversational pace" },
+    { day: "Wednesday", type: "Lift", title: "Lower Body Strength", summary: "Squats, Deadlifts, Split Squats, Hip Thrusts" },
+    { day: "Thursday", type: "Run", title: "Tempo Run", summary: "10 min warm-up, 20 min tempo, 10 min cool-down" },
+    { day: "Friday", type: "Lift", title: "Full Body Circuit", summary: "Power Cleans, Push-ups, Front Squats, Pull-ups" },
+  ],
+  balancedAthlete: [
+    { day: "Monday", type: "Lift", title: "Upper Body Strength", summary: "Bench Press, Rows, OHP, Pull-ups, Face Pulls" },
+    { day: "Tuesday", type: "Run", title: "Easy Run", summary: "30 min conversational pace" },
+    { day: "Wednesday", type: "Lift", title: "Lower Body Strength", summary: "Squats, RDLs, Lunges, Calf Raises" },
+    { day: "Thursday", type: "Run", title: "Tempo Run", summary: "10 min warm-up, 20 min tempo, 10 min cool-down" },
+    { day: "Friday", type: "Recovery", title: "Active Recovery", summary: "Light walk, mobility flow, foam rolling" },
+  ],
+  enduranceMachine: [
+    { day: "Monday", type: "Run", title: "Easy Run", summary: "40 min conversational pace" },
+    { day: "Tuesday", type: "Lift", title: "Full Body Circuit", summary: "Kettlebell Swings, Squats, Push-ups, Rows" },
+    { day: "Wednesday", type: "Run", title: "Tempo Run", summary: "10 min warm-up, 25 min tempo, 10 min cool-down" },
+    { day: "Thursday", type: "Run", title: "Interval Run", summary: "10x400m at 5K pace" },
+    { day: "Friday", type: "Recovery", title: "Active Recovery", summary: "Light walk, mobility flow, foam rolling" },
+  ],
+};
 
 const questions = [
   {
@@ -31,21 +65,6 @@ const questions = [
   },
   {
     id: 3,
-    question: "How many days per week can you realistically train?",
-    options: ["3 days", "4 days", "5 days", "6+ days"],
-  },
-  {
-    id: 4,
-    question: "How would you describe your training experience?",
-    options: [
-      "Beginner (less than 1 year)",
-      "Intermediate (1–3 years)",
-      "Advanced (3+ years)",
-      "On and off / inconsistent",
-    ],
-  },
-  {
-    id: 5,
     question: "What's been your biggest challenge with training?",
     options: [
       "Feeling slow when I lift",
@@ -56,17 +75,7 @@ const questions = [
     ],
   },
   {
-    id: 6,
-    question: "Do you have a race coming up?",
-    options: [
-      "Yes — within 3 months",
-      "Yes — 3–6 months out",
-      "Not right now",
-      "I train without racing",
-    ],
-  },
-  {
-    id: 7,
+    id: 4,
     question: "What would success look like in 12 weeks?",
     options: [
       "Faster race times",
@@ -76,24 +85,7 @@ const questions = [
     ],
   },
   {
-    id: 8,
-    type: "gender",
-    question: "How do you identify?",
-    options: [
-      "Man",
-      "Woman",
-      "Non-binary",
-      "Prefer to self-describe",
-      "Prefer not to say",
-    ],
-  },
-  {
-    id: 9,
-    type: "height-weight",
-    question: "What's your height and weight?",
-  },
-  {
-    id: 10,
+    id: 5,
     question: "Set your goal: Where do you want to be in 12 weeks?",
     options: [
       "Run a faster 5K or 10K while maintaining strength",
@@ -109,9 +101,8 @@ function AnalyzingScreen({ onComplete }) {
   const [step, setStep] = useState(0);
   const steps = [
     "Analyzing your responses...",
-    "Calculating optimal training split...",
-    "Personalizing your program...",
-    "Finalizing your hybrid plan...",
+    "Identifying your archetype...",
+    "Building your hybrid plan...",
   ];
 
   useEffect(() => {
@@ -121,11 +112,11 @@ function AnalyzingScreen({ onComplete }) {
           return prev + 1;
         } else {
           clearInterval(interval);
-          setTimeout(onComplete, 800);
+          setTimeout(onComplete, 500);
           return prev;
         }
       });
-    }, 600);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [onComplete, steps.length]);
@@ -174,262 +165,13 @@ function AnalyzingScreen({ onComplete }) {
   );
 }
 
-function HeightWeightQuestion({ onSubmit }) {
-  const [unit, setUnit] = useState("imperial");
-  const [feet, setFeet] = useState("");
-  const [inches, setInches] = useState("");
-  const [cm, setCm] = useState("");
-  const [lbs, setLbs] = useState("");
-  const [kg, setKg] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Slider values (stored as numbers for sliders)
-  const [heightInches, setHeightInches] = useState(70); // 5'10" default
-  const [heightCm, setHeightCm] = useState(178);
-  const [weightLbs, setWeightLbs] = useState(175);
-  const [weightKg, setWeightKg] = useState(79);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const handleSubmit = () => {
-    let height, weight;
-    if (unit === "imperial") {
-      if (isMobile) {
-        const ft = Math.floor(heightInches / 12);
-        const inch = heightInches % 12;
-        height = `${ft}'${inch}"`;
-        weight = `${weightLbs} lbs`;
-      } else {
-        height = `${feet}'${inches}"`;
-        weight = `${lbs} lbs`;
-      }
-    } else {
-      if (isMobile) {
-        height = `${heightCm} cm`;
-        weight = `${weightKg} kg`;
-      } else {
-        height = `${cm} cm`;
-        weight = `${kg} kg`;
-      }
-    }
-    onSubmit({ height, weight, unit });
-  };
-
-  const isValid = isMobile
-    ? true // Sliders always have valid values
-    : unit === "imperial"
-      ? feet && inches && lbs
-      : cm && kg;
-
-  // Helper to display height from inches
-  const formatHeightFromInches = (totalInches) => {
-    const ft = Math.floor(totalInches / 12);
-    const inch = totalInches % 12;
-    return `${ft}'${inch}"`;
-  };
-
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-      <h1 className="mb-8 text-3xl font-bold sm:text-4xl">
-        Take Our Quiz to Get Your{" "}
-        <span className="text-orange-500">Custom Training Plan!</span>
-      </h1>
-
-      <div className="mb-8 w-full max-w-md">
-        <div className="h-2 rounded-full bg-zinc-800">
-          <div
-            className="h-2 rounded-full bg-orange-500 transition-all"
-            style={{ width: `${(9 / 10) * 100}%` }}
-          />
-        </div>
-        <p className="mt-2 text-sm text-zinc-500">Question 9 of 10</p>
-      </div>
-
-      <h2 className="max-w-xl text-2xl font-bold sm:text-3xl mb-8">
-        What's your height and weight?
-      </h2>
-
-      {/* Unit Toggle */}
-      <div className="flex gap-2 mb-8 p-1 bg-zinc-800 rounded-lg">
-        <button
-          onClick={() => setUnit("imperial")}
-          className={`px-4 py-2 rounded-md transition-colors ${
-            unit === "imperial" ? "bg-orange-500 text-white" : "text-zinc-400"
-          }`}
-        >
-          Imperial (ft/lbs)
-        </button>
-        <button
-          onClick={() => setUnit("metric")}
-          className={`px-4 py-2 rounded-md transition-colors ${
-            unit === "metric" ? "bg-orange-500 text-white" : "text-zinc-400"
-          }`}
-        >
-          Metric (cm/kg)
-        </button>
-      </div>
-
-      <div className="w-full max-w-md space-y-6">
-        {/* Height */}
-        <div>
-          <label className="block text-left text-sm text-zinc-400 mb-2">Height</label>
-          {isMobile ? (
-            // Mobile: Slider
-            <div className="space-y-3">
-              <div className="text-center text-2xl font-bold text-orange-500">
-                {unit === "imperial" ? formatHeightFromInches(heightInches) : `${heightCm} cm`}
-              </div>
-              <input
-                type="range"
-                min={unit === "imperial" ? 48 : 120}
-                max={unit === "imperial" ? 84 : 220}
-                value={unit === "imperial" ? heightInches : heightCm}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (unit === "imperial") {
-                    setHeightInches(val);
-                  } else {
-                    setHeightCm(val);
-                  }
-                }}
-                className="w-full h-3 rounded-full appearance-none cursor-pointer bg-zinc-700 accent-orange-500"
-              />
-              <div className="flex justify-between text-xs text-zinc-500">
-                <span>{unit === "imperial" ? "4'0\"" : "120 cm"}</span>
-                <span>{unit === "imperial" ? "7'0\"" : "220 cm"}</span>
-              </div>
-            </div>
-          ) : (
-            // Desktop: Text inputs
-            <>
-              {unit === "imperial" ? (
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={feet}
-                        onChange={(e) => setFeet(e.target.value)}
-                        placeholder="5"
-                        className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">ft</span>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={inches}
-                        onChange={(e) => setInches(e.target.value)}
-                        placeholder="10"
-                        className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">in</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={cm}
-                    onChange={(e) => setCm(e.target.value)}
-                    placeholder="178"
-                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">cm</span>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Weight */}
-        <div>
-          <label className="block text-left text-sm text-zinc-400 mb-2">Weight</label>
-          {isMobile ? (
-            // Mobile: Slider
-            <div className="space-y-3">
-              <div className="text-center text-2xl font-bold text-orange-500">
-                {unit === "imperial" ? `${weightLbs} lbs` : `${weightKg} kg`}
-              </div>
-              <input
-                type="range"
-                min={unit === "imperial" ? 80 : 35}
-                max={unit === "imperial" ? 350 : 160}
-                value={unit === "imperial" ? weightLbs : weightKg}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value);
-                  if (unit === "imperial") {
-                    setWeightLbs(val);
-                  } else {
-                    setWeightKg(val);
-                  }
-                }}
-                className="w-full h-3 rounded-full appearance-none cursor-pointer bg-zinc-700 accent-orange-500"
-              />
-              <div className="flex justify-between text-xs text-zinc-500">
-                <span>{unit === "imperial" ? "80 lbs" : "35 kg"}</span>
-                <span>{unit === "imperial" ? "350 lbs" : "160 kg"}</span>
-              </div>
-            </div>
-          ) : (
-            // Desktop: Text input
-            <>
-              {unit === "imperial" ? (
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={lbs}
-                    onChange={(e) => setLbs(e.target.value)}
-                    placeholder="175"
-                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">lbs</span>
-                </div>
-              ) : (
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={kg}
-                    onChange={(e) => setKg(e.target.value)}
-                    placeholder="79"
-                    className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-center text-xl focus:border-orange-500 focus:outline-none"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">kg</span>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={!isValid}
-          className="w-full rounded-xl bg-orange-500 px-6 py-4 font-semibold text-white transition-colors hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Continue
-        </button>
-      </div>
-
-      <Link href="/welcome" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
-        ← Back to Home
-      </Link>
-    </main>
-  );
-}
-
-export default function Quiz() {
+function QuizContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [showAnalyzing, setShowAnalyzing] = useState(false);
+  const [showArchetypeReveal, setShowArchetypeReveal] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [name, setName] = useState("");
@@ -437,6 +179,15 @@ export default function Quiz() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [revealedArchetype, setRevealedArchetype] = useState(null);
+
+  // Store referral param from URL
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref && typeof window !== "undefined") {
+      localStorage.setItem("referralCode", ref);
+    }
+  }, [searchParams]);
 
   const handleEmailSignup = async (e) => {
     e.preventDefault();
@@ -488,7 +239,7 @@ export default function Quiz() {
         console.error("Quiz submit error:", quizErr);
       }
 
-      router.push("/results");
+      router.push("/onboarding");
     } catch (err) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -500,18 +251,6 @@ export default function Quiz() {
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
 
-    const questionId = questions[currentQuestion].id;
-
-    // Store gender answer for results page
-    if (questionId === 8 && typeof window !== "undefined") {
-      localStorage.setItem("quizGender", answer);
-    }
-
-    // Store goal answer for results page
-    if (questionId === 10 && typeof window !== "undefined") {
-      localStorage.setItem("quizGoal", answer);
-    }
-
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
@@ -520,24 +259,17 @@ export default function Quiz() {
     }
   };
 
-  const handleHeightWeightSubmit = (data) => {
-    const newAnswers = [...answers, data];
-    setAnswers(newAnswers);
-
-    // Store height/weight data for results page
-    if (typeof window !== "undefined") {
-      localStorage.setItem("quizHeightWeight", JSON.stringify(data));
-    }
-
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      setShowAnalyzing(true);
-    }
-  };
-
   const handleAnalyzingComplete = () => {
     setShowAnalyzing(false);
+    // Determine archetype client-side for the reveal
+    const archetype = determineArchetype(answers);
+    setRevealedArchetype(archetype);
+    setShowArchetypeReveal(true);
+    trackFunnelEvent("archetype_reveal");
+  };
+
+  const handleGetFullPlan = () => {
+    setShowArchetypeReveal(false);
     setShowSignIn(true);
     trackFunnelEvent("signup_page");
   };
@@ -547,32 +279,110 @@ export default function Quiz() {
     return <AnalyzingScreen onComplete={handleAnalyzingComplete} />;
   }
 
-  // Show sign-in gate after quiz completion
-  if (showSignIn) {
+  // Show archetype reveal before signup gate
+  if (showArchetypeReveal && revealedArchetype) {
+    const typeIcons = { Run: "🏃", Lift: "🏋️", Recovery: "🧘" };
+    const typeColors = { Run: "text-green-400", Lift: "text-orange-400", Recovery: "text-purple-400" };
+    const preview = sampleWorkouts[revealedArchetype.key] || sampleWorkouts.balancedAthlete;
+
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-500/20">
-          <svg
-            className="h-10 w-10 text-green-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+      <main className="flex min-h-screen flex-col items-center px-6 py-12 text-center">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-500/20">
+          <svg className="h-8 w-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
 
+        <p className="text-sm font-semibold uppercase tracking-widest text-orange-400 mb-2">
+          Your Hybrid Archetype
+        </p>
+
         <h1 className="text-3xl font-bold sm:text-4xl">
-          Your Plan is Ready!
+          <span className="text-orange-500">{revealedArchetype.label}</span>
         </h1>
 
         <p className="mt-4 max-w-md text-zinc-400">
-          Create an account to discover your hybrid athlete archetype and access your personalized training plan.
+          {revealedArchetype.description}
+        </p>
+
+        {/* Lift/Run/Recovery ratio bars */}
+        <div className="mt-6 w-full max-w-sm space-y-2">
+          {[
+            { label: "Lifting", value: revealedArchetype.ratios.lift, color: "bg-orange-500" },
+            { label: "Running", value: revealedArchetype.ratios.run, color: "bg-green-500" },
+            { label: "Recovery", value: revealedArchetype.ratios.recovery, color: "bg-purple-500" },
+          ].map((r) => (
+            <div key={r.label} className="flex items-center gap-3">
+              <span className="w-20 text-right text-sm text-zinc-400">{r.label}</span>
+              <div className="flex-1 h-3 rounded-full bg-zinc-800 overflow-hidden">
+                <div className={`h-full ${r.color} rounded-full transition-all duration-700`} style={{ width: `${r.value}%` }} />
+              </div>
+              <span className="w-10 text-sm text-zinc-500">{r.value}%</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Sample week preview */}
+        <div className="mt-8 w-full max-w-md">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 mb-3">
+            Sample Week Preview
+          </h3>
+          <div className="space-y-2">
+            {preview.map((w, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-left">
+                <span className="text-lg">{typeIcons[w.type]}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-500">{w.day}</span>
+                    <span className={`text-xs font-medium ${typeColors[w.type]}`}>{w.type}</span>
+                  </div>
+                  <p className="text-sm font-medium text-white truncate">{w.title}</p>
+                  <p className="text-xs text-zinc-500 truncate">{w.summary}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-8 w-full max-w-md">
+          <p className="text-zinc-400 mb-4">
+            Want your full personalized plan? Sign up free.
+          </p>
+          <button
+            onClick={handleGetFullPlan}
+            className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-4 text-lg font-bold text-white transition-all hover:from-orange-600 hover:to-orange-700 hover:scale-[1.02] shadow-lg shadow-orange-500/25"
+          >
+            Get My Full Plan →
+          </button>
+          <p className="mt-3 text-xs text-zinc-500">
+            Free 7-day trial · Cancel anytime · The PR-or-Free Promise
+          </p>
+        </div>
+
+        <Link href="/welcome" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
+          ← Back to Home
+        </Link>
+      </main>
+    );
+  }
+
+  // Show sign-in gate
+  if (showSignIn) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        {revealedArchetype && (
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2">
+            <span className="text-sm text-orange-400 font-medium">{revealedArchetype.label}</span>
+          </div>
+        )}
+
+        <h1 className="text-3xl font-bold sm:text-4xl">
+          Get Your Full Plan
+        </h1>
+
+        <p className="mt-4 max-w-md text-zinc-400">
+          Create a free account to unlock your complete personalized training plan with daily workouts.
         </p>
 
         <div className="mt-10 w-full max-w-sm">
@@ -584,7 +394,7 @@ export default function Quiz() {
                   if (typeof window !== "undefined") {
                     localStorage.setItem("quizAnswers", JSON.stringify(answers));
                   }
-                  signIn("google", { callbackUrl: "/results" });
+                  signIn("google", { callbackUrl: "/onboarding" });
                 }}
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 font-semibold text-zinc-900 transition-colors hover:bg-zinc-100"
               >
@@ -675,7 +485,7 @@ export default function Quiz() {
 
           <p className="mt-6 text-sm text-zinc-500">
             Already have an account?{" "}
-            <Link href="/?callbackUrl=/results" className="text-orange-500 hover:underline">
+            <Link href="/?callbackUrl=/onboarding" className="text-orange-500 hover:underline">
               Sign in
             </Link>
           </p>
@@ -689,11 +499,6 @@ export default function Quiz() {
   }
 
   const question = questions[currentQuestion];
-
-  // Height/Weight question
-  if (question.type === "height-weight") {
-    return <HeightWeightQuestion onSubmit={handleHeightWeightSubmit} />;
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
@@ -738,5 +543,13 @@ export default function Quiz() {
         ← Back to Home
       </Link>
     </main>
+  );
+}
+
+export default function Quiz() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-700 border-t-orange-500" /></div>}>
+      <QuizContent />
+    </Suspense>
   );
 }

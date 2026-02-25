@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const MONTHLY_PRICE = 19.99;
-const ORIGINAL_PRICE = 49.99;
+const MONTHLY_ORIGINAL = 49.99;
+const ANNUAL_PRICE = 149.99;
+const ANNUAL_ORIGINAL = 399.99;
+const ANNUAL_MONTHLY_EQUIV = (ANNUAL_PRICE / 12).toFixed(2);
 const TRIAL_DAYS = 7;
 
 function TermsModal({ onClose }) {
@@ -42,29 +45,22 @@ function TermsModal({ onClose }) {
           </p>
 
           {/* Section 1 */}
-          <h3 className="text-white font-bold text-base pt-4 border-t border-zinc-800">1. MONEY-BACK GUARANTEE RULES</h3>
+          <h3 className="text-white font-bold text-base pt-4 border-t border-zinc-800">1. THE PR-OR-FREE PROMISE (90-DAY GUARANTEE)</h3>
           <p>
-            In addition to refund rights available under applicable laws, if you made a purchase directly on our website and the money-back option was presented to you during checkout, you are eligible to receive a refund provided that <strong className="text-white">all</strong> of the following conditions are met:
+            Train with Stride & Steel for 90 days. Follow the plan. If you haven&apos;t set at least one personal record — in the gym or on the road — we&apos;ll refund every penny. All 3 months. No questions asked.
+          </p>
+          <p className="mt-2">
+            To be eligible for a refund under the PR-or-Free Promise, <strong className="text-white">all</strong> of the following conditions must be met:
           </p>
           <ul className="list-disc pl-5 space-y-2">
-            <li>You must contact us via email at{" "}
+            <li>You must maintain an active subscription for the full 90 days.</li>
+            <li>You must complete at least 75% of your scheduled workouts, as verified via your dashboard workout logs.</li>
+            <li>You must request your refund within 7 days of the 90-day mark by emailing{" "}
               <a href="mailto:support@strideandsteel.com" className="text-orange-400 hover:underline">support@strideandsteel.com</a>
-              {" "}within 30 days after your initial purchase and before the end of your subscription period.
+              {" "}with a dashboard screenshot showing your workout history.
             </li>
-            <li>You should have adhered to the training plan for at least 14 days in a row, and your refund request should include supporting materials to demonstrate your compliance. Specifically, please provide us with screenshots of your workout history from your dashboard, indicating your personal progress.</li>
             <li>We will review your application and notify you (by email) whether your application is approved.</li>
           </ul>
-
-          <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
-            <h4 className="text-white font-semibold mb-2">IMPORTANT STATEMENT</h4>
-            <p className="mb-2">
-              Please note that only fulfillment of <strong className="text-white">all</strong> the above requirements allows you to receive a full Voluntary Refund under "Money-back guarantee". For clarity, this "Money-back guarantee" does <strong className="text-white">not</strong> apply to the following cases:
-            </p>
-            <ul className="list-disc pl-5 space-y-1 text-zinc-400">
-              <li>Personal reasons (you don't like the product, it did not meet your expectations, etc.);</li>
-              <li>Financial reasons (you did not expect that you would be charged, that the trial would convert into a subscription, that the subscription would automatically renew, or that the services are paid, etc.).</li>
-            </ul>
-          </div>
 
           {/* Section 2 */}
           <h3 className="text-white font-bold text-base pt-4 border-t border-zinc-800">2. GENERAL REFUND RULES</h3>
@@ -149,14 +145,44 @@ function TermsModal({ onClose }) {
 
 export default function PricingSection() {
   const [showTerms, setShowTerms] = useState(false);
+  const [plan, setPlan] = useState("annual"); // Default to annual
+
+  const isAnnual = plan === "annual";
+  const displayPrice = isAnnual ? ANNUAL_PRICE : MONTHLY_PRICE;
+  const originalPrice = isAnnual ? ANNUAL_ORIGINAL : MONTHLY_ORIGINAL;
+  const billingLabel = isAnnual ? "/year" : "/month";
+  const checkoutHref = isAnnual ? "/checkout?plan=annual" : "/checkout?plan=monthly";
 
   return (
     <div className="w-full max-w-lg mx-auto mt-12">
+      {/* Plan Toggle */}
+      <div className="flex items-center justify-center gap-1 mb-6 p-1 bg-zinc-800 rounded-lg w-fit mx-auto">
+        <button
+          onClick={() => setPlan("monthly")}
+          className={`px-5 py-2.5 rounded-md text-sm font-medium transition-colors ${
+            !isAnnual ? "bg-orange-500 text-white" : "text-zinc-400 hover:text-zinc-300"
+          }`}
+        >
+          Monthly
+        </button>
+        <button
+          onClick={() => setPlan("annual")}
+          className={`px-5 py-2.5 rounded-md text-sm font-medium transition-colors relative ${
+            isAnnual ? "bg-orange-500 text-white" : "text-zinc-400 hover:text-zinc-300"
+          }`}
+        >
+          Annual
+          <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+            Save 37%
+          </span>
+        </button>
+      </div>
+
       {/* Main Pricing Card */}
       <div className="relative rounded-2xl border-2 border-orange-500 bg-gradient-to-b from-zinc-900 to-zinc-950 overflow-hidden">
-        {/* Popular Badge */}
+        {/* Badge */}
         <div className="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-4 py-1 rounded-bl-xl">
-          MOST POPULAR
+          {isAnnual ? "BEST VALUE" : "MOST POPULAR"}
         </div>
 
         <div className="p-8">
@@ -170,9 +196,12 @@ export default function PricingSection() {
             </div>
             <p className="text-lg text-orange-400 font-medium mt-2">{TRIAL_DAYS}-day trial</p>
             <div className="mt-2">
-              <span className="text-zinc-500 text-sm line-through">${ORIGINAL_PRICE}/month</span>
-              <span className="text-green-400 text-sm font-semibold ml-2">${MONTHLY_PRICE}/month</span>
+              <span className="text-zinc-500 text-sm line-through">${originalPrice}{billingLabel}</span>
+              <span className="text-green-400 text-sm font-semibold ml-2">${displayPrice}{billingLabel}</span>
             </div>
+            {isAnnual && (
+              <p className="text-green-400 text-xs font-medium mt-1">${ANNUAL_MONTHLY_EQUIV}/mo billed annually</p>
+            )}
             <p className="text-orange-400 text-xs font-medium mt-1">Early Adopter Launch Discount</p>
           </div>
 
@@ -202,7 +231,7 @@ export default function PricingSection() {
 
           {/* CTA Button */}
           <Link
-            href="/checkout"
+            href={checkoutHref}
             className="block w-full rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-4 text-center text-lg font-bold text-white transition-all hover:from-orange-600 hover:to-orange-700 hover:scale-[1.02] shadow-lg shadow-orange-500/25"
           >
             Start Free 7-Day Trial →
@@ -210,7 +239,7 @@ export default function PricingSection() {
 
           {/* Auto-renewal disclaimer */}
           <p className="mt-4 text-xs text-zinc-500 text-center leading-relaxed">
-            By continuing, you agree to start a free {TRIAL_DAYS}-day trial. A temporary authorization hold may appear on your card. After the trial, your subscription will auto-renew at ${MONTHLY_PRICE} USD/month unless you cancel in Settings. Please see our{" "}
+            By continuing, you agree to start a free {TRIAL_DAYS}-day trial. A temporary authorization hold may appear on your card. After the trial, your subscription will auto-renew at ${isAnnual ? `${ANNUAL_PRICE} USD/year` : `${MONTHLY_PRICE} USD/month`} unless you cancel in Settings. Please see our{" "}
             <button onClick={() => setShowTerms(true)} className="text-zinc-400 underline hover:text-zinc-300">
               Subscription terms
             </button>
@@ -227,13 +256,13 @@ export default function PricingSection() {
               <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span>Cancel anytime • No contracts</span>
+              <span>Cancel anytime · No contracts</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Money-Back Guarantee */}
+      {/* PR-or-Free Guarantee */}
       <div className="mt-6 rounded-xl border border-green-500/30 bg-green-500/10 p-6 text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
           <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -242,8 +271,8 @@ export default function PricingSection() {
             </svg>
           </div>
           <div className="text-left">
-            <h4 className="text-green-400 font-bold text-lg">30-Day Money-Back Guarantee</h4>
-            <p className="text-zinc-400 text-sm">Try risk-free. Not satisfied? Get a full refund.</p>
+            <h4 className="text-green-400 font-bold text-lg">The PR-or-Free Promise</h4>
+            <p className="text-zinc-400 text-sm">90 days. Set a PR or train free. Zero risk.</p>
           </div>
         </div>
         <button

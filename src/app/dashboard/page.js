@@ -27,12 +27,15 @@ const archetypeDescriptions = {
   "The Endurance Machine": "You're built for volume and distance. Long runs and high-rep training fuel your engine.",
 };
 
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }) {
   const session = await auth();
 
   if (!session?.user) {
     redirect("/signin");
   }
+
+  const params = await searchParams;
+  const isNewCheckout = params?.success === "true";
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -247,6 +250,23 @@ export default async function Dashboard() {
               >
                 Subscribe - $19.99/mo
               </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Welcome Banner for new subscribers */}
+        {isNewCheckout && isSubscribed && (
+          <div className="mb-8 rounded-xl border border-green-500/30 bg-gradient-to-r from-green-500/10 to-zinc-900 p-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500/20">
+                <svg className="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-green-400">Welcome to the Hybrid Athlete System!</h3>
+                <p className="text-sm text-zinc-400">Your first workout is ready. Scroll down and start today&apos;s session.</p>
+              </div>
             </div>
           </div>
         )}

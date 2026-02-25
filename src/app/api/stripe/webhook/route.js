@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { sendFBEvent } from "@/lib/facebook";
+import { sendTrialEmail } from "@/lib/emails/trial-emails";
 
 // Helper function to find user by stripeCustomerId or customer metadata
 async function findUserByCustomer(customerId) {
@@ -250,6 +251,13 @@ export async function POST(request) {
             stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
           },
         });
+
+        // Send Day 0 welcome email immediately
+        try {
+          await sendTrialEmail(user, "trial_day0");
+        } catch (e) {
+          console.error("Failed to send trial_day0 email:", e);
+        }
         break;
       }
     }

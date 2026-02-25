@@ -85,6 +85,11 @@ model User {
 
   // Onboarding
   tourCompleted            Boolean @default(false) // User has completed the onboarding tour
+  onboardingCompleted      Boolean @default(false) // User has completed post-signup onboarding questions
+  gender                   String?  // "Man", "Woman", "Non-binary", etc.
+  height                   String?  // e.g. "5'10\"", "178 cm"
+  weight                   String?  // e.g. "175 lbs", "79 kg"
+  heightWeightUnit         String?  // "imperial" or "metric"
 
   // Race goal
   raceName     String?

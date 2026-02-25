@@ -12,6 +12,7 @@ function CheckoutContent() {
   const [checkoutInitiated, setCheckoutInitiated] = useState(false);
 
   const referralCode = searchParams.get("ref") || "";
+  const plan = searchParams.get("plan") || "annual";
 
   useEffect(() => {
     // Wait for session to load
@@ -30,9 +31,14 @@ function CheckoutContent() {
     // Initiate Stripe checkout
     const initiateCheckout = async () => {
       try {
-        const body = {};
+        const body = { plan };
         if (referralCode) {
           body.referralCode = referralCode;
+        }
+        // Check localStorage for referral code from quiz flow
+        if (!referralCode && typeof window !== "undefined") {
+          const storedRef = localStorage.getItem("referralCode");
+          if (storedRef) body.referralCode = storedRef;
         }
 
         const response = await fetch("/api/stripe/checkout", {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { determineArchetype, parseTrainingDays, parseExperience } from "@/lib/archetypes";
+import { determineArchetype } from "@/lib/archetypes";
 import { generateQuizWorkouts } from "@/lib/workout-generator";
 
 export async function POST(request) {
@@ -11,11 +11,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Determine archetype from quiz answers
+    // Determine archetype from quiz answers (5 questions — training days and experience come from onboarding)
     const answersArray = Array.isArray(answers) ? answers : Object.values(answers || {});
     const archetype = determineArchetype(answersArray);
-    const trainingDays = parseTrainingDays(answersArray[2]);
-    const experience = parseExperience(answersArray[3]);
+    const trainingDays = 5; // Default until onboarding
+    const experience = "intermediate"; // Default until onboarding
 
     // Check if user already exists
     let user = await prisma.user.findUnique({

@@ -37,7 +37,7 @@ export default function EnjoymentPrompt({ userEmail }) {
   };
 
   const handleCopyLink = () => {
-    const link = `https://strideandsteel.com/pricing?ref=${encodeURIComponent(userEmail)}`;
+    const link = `https://strideandsteel.com/quiz?ref=${encodeURIComponent(userEmail)}`;
     navigator.clipboard.writeText(link).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -84,9 +84,9 @@ export default function EnjoymentPrompt({ userEmail }) {
         <div className="h-1 w-8 rounded-full bg-orange-500" />
         <p className="text-sm font-medium text-orange-400">Spread the word & save</p>
       </div>
-      <h3 className="text-lg font-bold">Share your referral code with a friend</h3>
+      <h3 className="text-lg font-bold">Share your free Hybrid Athlete Assessment</h3>
       <p className="mt-2 text-sm text-zinc-400">
-        When they subscribe, you both get 50% off a month.
+        Your friend takes the quiz, discovers their archetype, and signs up. You both get 50% off a month.
       </p>
 
       {/* Referral code box */}

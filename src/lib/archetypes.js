@@ -62,28 +62,28 @@ export function determineArchetype(answers) {
     scores.ironRunner += 2;
   }
 
-  // Q5 (index 4) — Biggest challenge
+  // Q3 (index 2) — Biggest challenge (was Q5/index 4)
+  const q3 = (answers[2] || "").toLowerCase();
+  if (q3.includes("slow") || q3.includes("lifting")) scores.ironRunner += 2;
+  else if (q3.includes("weak") || q3.includes("running")) scores.steelStrider += 2;
+  else if (q3.includes("fatigue") || q3.includes("tired") || q3.includes("recovery")) scores.balancedAthlete += 2;
+
+  // Q4 (index 3) — 12-week success vision (was Q7/index 6)
+  const q4 = (answers[3] || "").toLowerCase();
+  if (q4.includes("faster") || q4.includes("speed") || q4.includes("pr")) scores.ironRunner += 3;
+  else if (q4.includes("strength") || q4.includes("stronger") || q4.includes("lift")) scores.steelStrider += 2;
+  else if (q4.includes("consistent") || q4.includes("habit")) scores.balancedAthlete += 2;
+  else if (q4.includes("athletic") || q4.includes("well-rounded") || q4.includes("overall")) scores.balancedAthlete += 3;
+
+  // Q5 (index 4) — 12-week goal (was Q10/index 9)
   const q5 = (answers[4] || "").toLowerCase();
-  if (q5.includes("slow") || q5.includes("lifting")) scores.ironRunner += 2;
-  else if (q5.includes("weak") || q5.includes("running")) scores.steelStrider += 2;
-  else if (q5.includes("fatigue") || q5.includes("tired") || q5.includes("recovery")) scores.balancedAthlete += 2;
-
-  // Q7 (index 6) — 12-week success vision
-  const q7 = (answers[6] || "").toLowerCase();
-  if (q7.includes("faster") || q7.includes("speed") || q7.includes("pr")) scores.ironRunner += 3;
-  else if (q7.includes("strength") || q7.includes("stronger") || q7.includes("lift")) scores.steelStrider += 2;
-  else if (q7.includes("consistent") || q7.includes("habit")) scores.balancedAthlete += 2;
-  else if (q7.includes("athletic") || q7.includes("well-rounded") || q7.includes("overall")) scores.balancedAthlete += 3;
-
-  // Q10 (index 9) — 12-week goal
-  const q10 = (answers[9] || "").toLowerCase();
-  if (q10.includes("5k") || q10.includes("10k") || q10.includes("faster")) scores.ironRunner += 3;
-  else if (q10.includes("add lift") || q10.includes("lifting") || q10.includes("strength program")) scores.steelStrider += 3;
-  else if (q10.includes("half marathon") || q10.includes("half")) {
+  if (q5.includes("5k") || q5.includes("10k") || q5.includes("faster")) scores.ironRunner += 3;
+  else if (q5.includes("add lift") || q5.includes("lifting") || q5.includes("strength program")) scores.steelStrider += 3;
+  else if (q5.includes("half marathon") || q5.includes("half")) {
     scores.ironRunner += 2;
     scores.enduranceMachine += 2;
-  } else if (q10.includes("muscle") && q10.includes("mile")) scores.steelStrider += 2;
-  else if (q10.includes("overall") || q10.includes("well-rounded") || q10.includes("balanced")) scores.balancedAthlete += 3;
+  } else if (q5.includes("muscle") && q5.includes("mile")) scores.steelStrider += 2;
+  else if (q5.includes("overall") || q5.includes("well-rounded") || q5.includes("balanced")) scores.balancedAthlete += 3;
 
   // Find the archetype with the highest score
   let maxKey = "balancedAthlete";

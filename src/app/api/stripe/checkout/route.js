@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, PRICE_ID } from "@/lib/stripe";
+import { stripe, PRICE_ID, ANNUAL_PRICE_ID } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { sendFBEvent } from "@/lib/facebook";
 
@@ -31,13 +31,17 @@ export async function POST(request) {
       }
     }
 
-    // Parse referral code from request body
+    // Parse request body for plan type and referral code
     let referralCode = null;
+    let planType = "monthly";
     try {
       const body = await request.json();
       referralCode = body.referralCode || null;
+      if (body.plan === "annual" && ANNUAL_PRICE_ID) {
+        planType = "annual";
+      }
     } catch {
-      // No body or invalid JSON — proceed without referral
+      // No body or invalid JSON — proceed with defaults
     }
 
     // Validate referral code
@@ -87,9 +91,10 @@ export async function POST(request) {
     }
 
     // Create checkout session with free 7-day trial (auth charge only)
+    const selectedPriceId = planType === "annual" ? ANNUAL_PRICE_ID : PRICE_ID;
     const lineItems = [
       {
-        price: PRICE_ID,
+        price: selectedPriceId,
         quantity: 1,
       },
     ];
