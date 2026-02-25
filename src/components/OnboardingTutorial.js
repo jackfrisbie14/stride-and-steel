@@ -62,6 +62,7 @@ const TUTORIAL_STEPS = [
 
 export default function OnboardingTutorial({ show }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
   const tooltipRef = useRef(null);
@@ -119,10 +120,20 @@ export default function OnboardingTutorial({ show }) {
 
   const handleComplete = async () => {
     setIsOpen(false);
+    setDismissed(true);
     try {
       await fetch("/api/user/tour-complete", { method: "POST" });
     } catch (e) {
       console.error("Failed to save tour completion:", e);
+    }
+  };
+
+  const handleDismissButton = async () => {
+    setDismissed(true);
+    try {
+      await fetch("/api/user/tour-complete", { method: "POST" });
+    } catch (e) {
+      console.error("Failed to save tour dismissal:", e);
     }
   };
 
@@ -143,6 +154,30 @@ export default function OnboardingTutorial({ show }) {
   const handleSkip = () => {
     handleComplete();
   };
+
+  // Opt-in mode: show a small dismissible banner
+  if (!show && !isOpen && !dismissed) {
+    return (
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 shadow-lg">
+        <p className="text-sm text-zinc-400">New here?</p>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="text-sm font-semibold text-orange-400 hover:text-orange-300"
+        >
+          Take a quick tour
+        </button>
+        <button
+          onClick={handleDismissButton}
+          className="text-zinc-600 hover:text-zinc-400 ml-1"
+          aria-label="Dismiss"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
 
   if (!isOpen) return null;
 

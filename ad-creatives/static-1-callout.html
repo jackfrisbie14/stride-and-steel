@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .ad {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bg {
+    position: absolute;
+    inset: 0;
+    background: url('../public/tripicture.jpg') center top / cover no-repeat;
+  }
+
+  /* Darken bottom for text readability */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.1) 0%,
+      rgba(0,0,0,0.2) 40%,
+      rgba(0,0,0,0.75) 70%,
+      rgba(0,0,0,0.92) 100%
+    );
+  }
+
+  .content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 64px 72px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 96px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+
+  h1 em {
+    font-style: normal;
+    color: #f97316;
+  }
+
+  .cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+    font-size: 30px;
+    font-weight: 800;
+    padding: 22px 52px;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(249,115,22,0.4);
+  }
+</style>
+</head>
+<body>
+  <div class="ad">
+    <div class="bg"></div>
+    <div class="overlay"></div>
+    <div class="content">
+      <h1>You run <em>and</em> lift?</h1>
+      <div class="cta">Free 30-Second Quiz &rarr;</div>
+    </div>
+  </div>
+</body>
+</html>

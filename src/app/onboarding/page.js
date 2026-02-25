@@ -330,11 +330,11 @@ export default function Onboarding() {
         }
       }
 
-      router.push("/results");
+      router.push("/dashboard?welcome=true");
     } catch (err) {
       console.error("Onboarding submit error:", err);
       // Still redirect on error — defaults will be used
-      router.push("/results");
+      router.push("/dashboard?welcome=true");
     }
   };
 
@@ -351,11 +351,11 @@ export default function Onboarding() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
       <p className="text-sm font-semibold uppercase tracking-widest text-orange-400 mb-4">
-        Personalize Your Plan
+        Let's Build Your Plan
       </p>
 
       <h1 className="mb-8 text-3xl font-bold sm:text-4xl">
-        A Few More Questions
+        Customize Your Training
       </h1>
 
       {/* Progress bar */}

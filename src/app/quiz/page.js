@@ -171,9 +171,11 @@ function QuizContent() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [showAnalyzing, setShowAnalyzing] = useState(false);
+  const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [showArchetypeReveal, setShowArchetypeReveal] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [capturedEmail, setCapturedEmail] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -239,7 +241,7 @@ function QuizContent() {
         console.error("Quiz submit error:", quizErr);
       }
 
-      router.push("/onboarding");
+      router.push("/checkout");
     } catch (err) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -261,13 +263,28 @@ function QuizContent() {
 
   const handleAnalyzingComplete = () => {
     setShowAnalyzing(false);
-    // Determine archetype client-side for the reveal
+    // Determine archetype client-side but don't reveal yet — capture email first
     const archetype = determineArchetype(answers);
     setRevealedArchetype(archetype);
+    setShowEmailCapture(true);
+    trackFunnelEvent("email_capture_shown");
+  };
+
+  const handleEmailCapture = (e) => {
+    e.preventDefault();
+    const emailValue = capturedEmail.trim();
+    if (!emailValue) return;
+
+    // Store email for pre-filling signup later
+    setCapturedEmail(emailValue);
+    setEmail(emailValue);
+
+    // Show archetype reveal
+    setShowEmailCapture(false);
     setShowArchetypeReveal(true);
     trackFunnelEvent("archetype_reveal");
 
-    // Fire Lead event for Meta optimization (the key fix from last campaign)
+    // Fire Lead event WITH email for better Meta CAPI matching
     const leadEventId = "lead_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
 
     // Client-side pixel
@@ -275,7 +292,7 @@ function QuizContent() {
       window.fbq("track", "Lead", {}, { eventID: leadEventId });
     }
 
-    // Server-side CAPI (deduped via shared eventID)
+    // Server-side CAPI (deduped via shared eventID, now includes email)
     fetch("/api/analytics/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -283,6 +300,7 @@ function QuizContent() {
         type: "lead",
         visitorId: typeof window !== "undefined" ? localStorage.getItem("ss_visitor_id") : null,
         fbEventId: leadEventId,
+        userEmail: emailValue,
         utm: getUtmData(),
       }),
     }).catch(() => {});
@@ -297,6 +315,43 @@ function QuizContent() {
   // Show analyzing screen
   if (showAnalyzing) {
     return <AnalyzingScreen onComplete={handleAnalyzingComplete} />;
+  }
+
+  // Show email capture gate (between analyzing and archetype reveal)
+  if (showEmailCapture && revealedArchetype) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-3xl font-bold sm:text-4xl">
+          Your archetype is ready.
+        </h1>
+
+        <p className="mt-4 max-w-md text-zinc-400">
+          Enter your email to see your hybrid athlete type and a custom AI training plan — runs, lifts, and recovery, all programmed for you.
+        </p>
+
+        {/* Email capture form */}
+        <form onSubmit={handleEmailCapture} className="mt-8 w-full max-w-sm">
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={capturedEmail}
+              onChange={(e) => setCapturedEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              autoFocus
+              className="flex-1 rounded-lg bg-zinc-800 px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <button
+              type="submit"
+              className="rounded-lg bg-orange-500 px-6 py-3 font-bold text-white transition-colors hover:bg-orange-600"
+            >
+              Show Me →
+            </button>
+          </div>
+          <p className="mt-3 text-xs text-zinc-600">No spam. Unsubscribe anytime.</p>
+        </form>
+      </main>
+    );
   }
 
   // Show archetype reveal before signup gate
@@ -364,20 +419,44 @@ function QuizContent() {
           </div>
         </div>
 
-        {/* CTA */}
+        {/* What you get */}
         <div className="mt-8 w-full max-w-md">
-          <p className="text-zinc-400 mb-4">
-            Want your full personalized plan? Sign up free.
-          </p>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 mb-6 text-left">
+            <p className="text-sm font-semibold text-zinc-300 mb-3">Your sample week above is generic. Start your trial to unlock:</p>
+            <div className="space-y-2">
+              {[
+                "Custom AI training built around your archetype",
+                "Daily workouts — every run, lift, and recovery session programmed",
+                "Exercise demos with GIFs, weight tracking, and progressive overload",
+                "AI adapts your plan weekly as you improve",
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <svg className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm text-zinc-400">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Guarantee — unmistakably large */}
+          <div className="rounded-2xl border-2 border-orange-500/40 bg-orange-500/5 px-6 py-8 mb-6 text-center">
+            <p className="text-orange-500 font-black text-3xl sm:text-4xl leading-tight">
+              Get stronger and faster<br />in 90 days — or it's free.
+            </p>
+            <p className="text-zinc-300 text-base mt-4">
+              I'm so confident this plan will work that if your lifts or endurance don't improve — you get a full refund. Every penny.
+            </p>
+            <p className="text-zinc-500 text-sm mt-3">Free 7-day trial · Cancel anytime</p>
+          </div>
+
           <button
             onClick={handleGetFullPlan}
             className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-4 text-lg font-bold text-white transition-all hover:from-orange-600 hover:to-orange-700 hover:scale-[1.02] shadow-lg shadow-orange-500/25"
           >
-            Get My Full Plan →
+            Start My Free Trial →
           </button>
-          <p className="mt-3 text-xs text-zinc-500">
-            Free 7-day trial · Cancel anytime · The PR-or-Free Promise
-          </p>
         </div>
 
         <Link href="/welcome" className="mt-8 text-sm text-zinc-500 hover:text-zinc-300">
@@ -398,11 +477,15 @@ function QuizContent() {
         )}
 
         <h1 className="text-3xl font-bold sm:text-4xl">
-          Get Your Full Plan
+          Start Your Free Trial
         </h1>
 
         <p className="mt-4 max-w-md text-zinc-400">
-          Create a free account to unlock your complete personalized training plan with daily workouts.
+          Create an account to get your full {revealedArchetype?.label} training plan — customized to your schedule, experience, and goals.
+        </p>
+
+        <p className="mt-3 text-orange-400 font-semibold text-sm">
+          Get stronger and faster in 90 days — or it's free. 7-day trial included.
         </p>
 
         <div className="mt-10 w-full max-w-sm">
@@ -414,7 +497,7 @@ function QuizContent() {
                   if (typeof window !== "undefined") {
                     localStorage.setItem("quizAnswers", JSON.stringify(answers));
                   }
-                  signIn("google", { callbackUrl: "/onboarding" });
+                  signIn("google", { callbackUrl: "/checkout" });
                 }}
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 font-semibold text-zinc-900 transition-colors hover:bg-zinc-100"
               >

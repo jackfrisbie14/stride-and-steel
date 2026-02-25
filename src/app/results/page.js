@@ -270,36 +270,8 @@ export default function Results() {
       )}
 
       <p className="mt-6 max-w-xl text-zinc-400">
-        Based on your answers, you're ready for a structured approach that
-        builds both strength and endurance without compromise.
+        Your plan is ready. Every run, lift, and recovery session — programmed for your {archetypeLabel || "archetype"} profile.
       </p>
-
-      <div className="mt-6 max-w-md space-y-3 text-left">
-        <div className="flex items-start gap-3">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-500/20 text-orange-500">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <p className="text-zinc-300">Personalized weekly training schedule</p>
-        </div>
-        <div className="flex items-start gap-3">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-500/20 text-orange-500">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <p className="text-zinc-300">Strength & endurance workouts that work together</p>
-        </div>
-        <div className="flex items-start gap-3">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-500/20 text-orange-500">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <p className="text-zinc-300">Progress tracking dashboard</p>
-        </div>
-      </div>
 
       {/* Pricing Section */}
       <PricingSection />

@@ -33,10 +33,10 @@ export default function Home() {
                 </Link>
               </div>
 
-              <p className="mt-6 text-sm text-zinc-500">
-                Free 7-day trial &middot; Cancel anytime &middot; The PR-or-Free
-                Guarantee
-              </p>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/5 px-5 py-2.5">
+                <span className="text-orange-400 font-bold text-sm">PR in 90 days or train free.</span>
+                <span className="text-zinc-500 text-sm">Free 7-day trial &middot; Cancel anytime</span>
+              </div>
             </div>
 
             <HeroCarousel />
@@ -53,11 +53,11 @@ export default function Home() {
 
           <div className="mt-12 space-y-4 max-w-2xl mx-auto">
             {[
-              "You love running but skip the gym because you have no idea how to fit lifting in...",
-              "You're terrified that lifting will make you slow — or that running will kill your gains...",
-              'You\'ve Googled "hybrid training plan" and gotten 50 conflicting answers...',
-              "You've tried combining both and ended up overtrained, injured, or burned out...",
-              "You know you need a plan — but you're spending more time planning than actually training...",
+              "You run and lift — but with no real program.",
+              "Legs are always sore for runs. Runs are always killing your lifts.",
+              "Training hard 5 days a week. Getting slower at both.",
+              "You've tried combining both. Ended up overtrained or burned out.",
+              "More time planning than training.",
             ].map((item, i) => (
               <div
                 key={i}

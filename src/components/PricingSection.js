@@ -47,14 +47,14 @@ function TermsModal({ onClose }) {
           {/* Section 1 */}
           <h3 className="text-white font-bold text-base pt-4 border-t border-zinc-800">1. THE PR-OR-FREE PROMISE (90-DAY GUARANTEE)</h3>
           <p>
-            Train with Stride & Steel for 90 days. Follow the plan. If you haven&apos;t set at least one personal record — in the gym or on the road — we&apos;ll refund every penny. All 3 months. No questions asked.
+            Train with Stride & Steel for 90 days. Follow the plan. If none of your lifts or endurance markers improve — we&apos;ll refund every penny. All 3 months. No questions asked.
           </p>
           <p className="mt-2">
             To be eligible for a refund under the PR-or-Free Promise, <strong className="text-white">all</strong> of the following conditions must be met:
           </p>
           <ul className="list-disc pl-5 space-y-2">
             <li>You must maintain an active subscription for the full 90 days.</li>
-            <li>You must complete at least 75% of your scheduled workouts, as verified via your dashboard workout logs.</li>
+            <li>You must complete at least 75% of your scheduled workouts during the 90-day period, as verified via your dashboard workout logs. This minimum usage requirement ensures you&apos;ve given the program a genuine effort.</li>
             <li>You must request your refund within 7 days of the 90-day mark by emailing{" "}
               <a href="mailto:support@strideandsteel.com" className="text-orange-400 hover:underline">support@strideandsteel.com</a>
               {" "}with a dashboard screenshot showing your workout history.
@@ -271,8 +271,8 @@ export default function PricingSection() {
             </svg>
           </div>
           <div className="text-left">
-            <h4 className="text-green-400 font-bold text-lg">The PR-or-Free Promise</h4>
-            <p className="text-zinc-400 text-sm">90 days. Set a PR or train free. Zero risk.</p>
+            <h4 className="text-green-400 font-bold text-lg">The 90-Day Guarantee</h4>
+            <p className="text-zinc-400 text-sm">Get stronger and faster in 90 days — or it's free.</p>
           </div>
         </div>
         <button

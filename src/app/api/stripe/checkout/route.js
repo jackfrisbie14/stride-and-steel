@@ -132,8 +132,8 @@ export async function POST(request) {
       payment_method_types: ["card"],
       line_items: lineItems,
       subscription_data: subscriptionData,
-      success_url: `${process.env.NEXTAUTH_URL?.trim()}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXTAUTH_URL?.trim()}/pricing?canceled=true`,
+      success_url: `${process.env.NEXTAUTH_URL?.trim()}/onboarding?subscribed=true`,
+      cancel_url: `${process.env.NEXTAUTH_URL?.trim()}/results?canceled=true`,
       metadata: {
         userId: user.id,
       },

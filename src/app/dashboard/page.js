@@ -36,6 +36,7 @@ export default async function Dashboard({ searchParams }) {
 
   const params = await searchParams;
   const isNewCheckout = params?.success === "true";
+  const isNewUser = params?.welcome === "true";
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -255,7 +256,7 @@ export default async function Dashboard({ searchParams }) {
         )}
 
         {/* Welcome Banner for new subscribers */}
-        {isNewCheckout && isSubscribed && (
+        {(isNewCheckout || isNewUser) && isSubscribed && (
           <div className="mb-8 rounded-xl border border-green-500/30 bg-gradient-to-r from-green-500/10 to-zinc-900 p-6">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500/20">
@@ -264,8 +265,8 @@ export default async function Dashboard({ searchParams }) {
                 </svg>
               </div>
               <div>
-                <h3 className="text-lg font-bold text-green-400">Welcome to the Hybrid Athlete System!</h3>
-                <p className="text-sm text-zinc-400">Your first workout is ready. Scroll down and start today&apos;s session.</p>
+                <h3 className="text-lg font-bold text-green-400">Your plan is ready!</h3>
+                <p className="text-sm text-zinc-400">Tap any workout card below to get started.</p>
               </div>
             </div>
           </div>
@@ -458,8 +459,8 @@ export default async function Dashboard({ searchParams }) {
 
       </div>
 
-      {/* Onboarding Tutorial for new subscribers */}
-      {isSubscribed && !user?.tourCompleted && <OnboardingTutorial show={true} />}
+      {/* Optional Tour */}
+      {isSubscribed && !user?.tourCompleted && <OnboardingTutorial show={false} />}
     </main>
   );
 }

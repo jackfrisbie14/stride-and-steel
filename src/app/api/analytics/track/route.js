@@ -6,7 +6,7 @@ import { sendFBEvent } from "@/lib/facebook";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { type, path, step, visitorId, referrer, userAgent, metadata, fbEventId, utm } = body;
+    const { type, path, step, visitorId, referrer, userAgent, metadata, fbEventId, utm, userEmail: bodyEmail } = body;
 
     if (!visitorId) {
       return NextResponse.json({ error: "Missing visitorId" }, { status: 400 });
@@ -79,10 +79,10 @@ export async function POST(request) {
       }
     }
 
-    // Handle Lead event (quiz completion / archetype reveal)
+    // Handle Lead event (quiz completion / email capture)
     if (type === "lead") {
       sendFBEvent("Lead", {
-        email: userEmail || undefined,
+        email: bodyEmail || userEmail || undefined,
         userAgent: userAgent || request.headers.get("user-agent") || undefined,
         eventId: fbEventId || undefined,
       });

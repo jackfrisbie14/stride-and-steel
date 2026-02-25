@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .ad {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bg {
+    position: absolute;
+    inset: 0;
+    background: url('../public/tripicture.jpg') center top / cover no-repeat;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.55) 0%,
+      rgba(0,0,0,0.2) 30%,
+      rgba(0,0,0,0.2) 45%,
+      rgba(0,0,0,0.8) 72%,
+      rgba(0,0,0,0.93) 100%
+    );
+  }
+
+  .top-content {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    text-align: center;
+  }
+
+  .number {
+    font-size: 180px;
+    font-weight: 900;
+    color: #f97316;
+    line-height: 1;
+    letter-spacing: -8px;
+    text-shadow: 0 4px 32px rgba(0,0,0,0.7);
+  }
+
+  .label {
+    font-size: 40px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.9);
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.7);
+  }
+
+  .content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 56px 72px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 80px;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.15;
+    margin-bottom: 28px;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+
+  .cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+    font-size: 30px;
+    font-weight: 800;
+    padding: 22px 52px;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(249,115,22,0.4);
+  }
+</style>
+</head>
+<body>
+  <div class="ad">
+    <div class="bg"></div>
+    <div class="overlay"></div>
+    <div class="top-content">
+      <div class="number">5</div>
+      <div class="label">Hybrid Athlete Types</div>
+    </div>
+    <div class="content">
+      <h1>Which one are you?</h1>
+      <div class="cta">30-Second Quiz &rarr;</div>
+    </div>
+  </div>
+</body>
+</html>
