@@ -28,6 +28,31 @@ function CheckoutContent() {
     if (checkoutInitiated) return;
     setCheckoutInitiated(true);
 
+    // Check for promo code — redeem and skip Stripe checkout
+    const promoCode = typeof window !== "undefined" ? localStorage.getItem("promoCode") : null;
+    if (promoCode) {
+      const redeemPromo = async () => {
+        try {
+          const promoRes = await fetch("/api/promo/redeem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: promoCode }),
+          });
+          if (promoRes.ok) {
+            localStorage.removeItem("promoCode");
+            router.push("/onboarding");
+            return;
+          }
+        } catch (e) {
+          console.error("Promo redeem error:", e);
+        }
+        // If promo fails, fall through to normal checkout
+        initiateCheckout();
+      };
+      redeemPromo();
+      return;
+    }
+
     // Initiate Stripe checkout
     const initiateCheckout = async () => {
       try {

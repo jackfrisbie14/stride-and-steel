@@ -183,11 +183,15 @@ function QuizContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [revealedArchetype, setRevealedArchetype] = useState(null);
 
-  // Store referral param from URL
+  // Store referral and promo params from URL
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref && typeof window !== "undefined") {
       localStorage.setItem("referralCode", ref);
+    }
+    const code = searchParams.get("code");
+    if (code && typeof window !== "undefined") {
+      localStorage.setItem("promoCode", code);
     }
   }, [searchParams]);
 
@@ -239,6 +243,25 @@ function QuizContent() {
         }
       } catch (quizErr) {
         console.error("Quiz submit error:", quizErr);
+      }
+
+      // Check for promo code — redeem and skip checkout
+      const promoCode = typeof window !== "undefined" ? localStorage.getItem("promoCode") : null;
+      if (promoCode) {
+        try {
+          const promoRes = await fetch("/api/promo/redeem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: promoCode }),
+          });
+          if (promoRes.ok) {
+            localStorage.removeItem("promoCode");
+            router.push("/onboarding");
+            return;
+          }
+        } catch (promoErr) {
+          console.error("Promo redeem error:", promoErr);
+        }
       }
 
       router.push("/checkout");
